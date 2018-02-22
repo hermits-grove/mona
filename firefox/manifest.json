@@ -1,0 +1,19 @@
+{
+  "manifest_version": 2,
+  "name": "Mona",
+  "version": "1.0",
+
+  "description": "Password Managers minus Trust",
+
+  "icons": {
+    "48": "icons/mona-48.png"
+  },
+
+  "content_scripts": [
+    {
+      "matches": ["*"],
+      "js": ["bundle.js"]
+    }
+  ]
+
+}

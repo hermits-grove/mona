@@ -1,0 +1,11 @@
+[package]
+name = "mona"
+version = "0.1.0"
+authors = ["David Rusu <davidrusu.me@gmail.com>"]
+
+[dependencies]
+git2 = "0.6.11"
+
+[[bin]]
+name = "mona"
+path = "main.rs"

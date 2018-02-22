@@ -1,0 +1,27 @@
+{
+  "name": "mona",
+  "version": "1.0.0",
+  "description": "mona firefox extension",
+  "main": "index.js",
+  "scripts": {
+    "start": "node index.js",
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/strong-box/mona.git"
+  },
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/strong-box/mona/issues"
+  },
+  "homepage": "https://github.com/strong-box/mona#readme",
+  "dependencies": {
+    "js-git": "^0.7.8",
+    "openpgp": "^2.6.2"
+  },
+  "devDependencies": {
+    "webpack": "^3.11.0"
+  }
+}
