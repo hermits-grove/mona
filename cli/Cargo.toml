@@ -5,6 +5,7 @@ authors = ["David Rusu <davidrusu.me@gmail.com>"]
 
 [dependencies]
 git2 = "0.6.11"
+ring = "0.13.0-alpha"
 
 [[bin]]
 name = "mona"
