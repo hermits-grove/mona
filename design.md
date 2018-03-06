@@ -8,22 +8,21 @@ binary to ascii encoding scheme: Base32 (we need filename and url safe strings)
 
 ## Encrypt a secret:
 INPUTS:
-- passphrase: u8 array
+- master_passphrase: u8 array
 - plaintext_secret: u8 array
-- filename: u8 array
+- ciphertext_filepath: String
 - metadata: see Metadata Format
 
 OUTPUTS:
 - Metadata is json encoded and written to {filename}.json
 - Encrypted file is written to {filename}
 
-STEPS:
-```
-encoded_metadata : [u8] = json_encode(metadata)
+Pseudocode
+``` rust
 
-assert metadata.paranoid.key_derivation_iterations >= 1
-
-
+# ASSUME
+# metadata.kdf.name == "pbkdf2"
+# metadata.kdf.algo == "
 key : [u8] = passphrase
 for key_i in 0..metadata.paranoid.key_derivation_iterations:
     for key_algo in metadata.key_derivation:
@@ -35,6 +34,8 @@ padded_plaintext[metadata.plaintext_padding..plaintext.length] = plaintext;
 padded_plaintext[plaintext.length + metadata.plaintext_padding..] = random_bytes(num_bytes=metadata.plaintext_padding);
 
 assert metadata.paranoid.encrypt_iterations >= 1
+encoded_metadata : [u8] = toml_encode(metadata)
+
 
 ciphertext : [u8] = padded_plaintext
 for encrypt_i in 0..metadata.paranoid.encrypt_iterations:
@@ -55,12 +56,7 @@ describes how {encrypted_file_path} was encrypted.
 # encrypted/file.toml
 [ mona ]
 version = "0.0.1"
-
-[ kdf ] # Key Derivation Function
-name = "pbkdf2"
-algo = "Sha256" # algorithm to be used by pbkdf2
-iters = 100000  # positive i32: iterations argument to pbkdf2
-salt = "<salt>" # base32 encoded string: salt argument to pbkdf2
+encoding = "base64url"
 
 [ plaintext ] # Modifications to plaintext prior to encrypting
 # if plaintext is smaller than min_bits, plaintext will be extended to
@@ -74,6 +70,12 @@ salt = "<salt>" # base32 encoded string: salt argument to pbkdf2
 #
 # purpose is to hide length of short plaintext
 min_bits = 1024
+
+[ kdf ] # Key Derivation Function
+name = "pbkdf2"
+algo = "Sha256" # algorithm to be used by pbkdf2
+iters = 100000  # positive i32: iterations argument to pbkdf2
+salt = "<salt>" # base32 encoded string: salt argument to pbkdf2
 
 [ encrypt ]
 name = "aead"

@@ -1,9 +1,16 @@
+#[macro_use]
+extern crate serde_derive;
+
 extern crate git2;
 use git2::Repository;
 use std::path;
 
 extern crate ring;
 use ring::{aead, digest, pbkdf2};
+
+extern crate data_encoding;
+
+mod secret_meta;
 
 fn mona_dir() -> Result<path::PathBuf, String> {
     match std::env::home_dir() {
@@ -39,6 +46,50 @@ fn setup_repo() -> git2::Repository{
     repo.unwrap()
 }
 
+fn decode(encoded: &String, mona_meta: &secret_meta::MonaMeta) -> Vec<u8> {
+    let encoding = match mona_meta.encoding.as_ref() {
+        "base64url" => data_encoding::BASE64URL,
+        _ => panic!("Unknonw encoding algorithm: {}", mona_meta.encoding)
+    };
+    let decoded = match encoding.decode(encoded.as_bytes()) {
+        Ok(decoded) => decoded,
+        Err(err) => panic!("Failed to decode string: {:?}", err)
+    };
+    decoded
+}
+
+fn kdf(master_pass: &[u8], keylength: usize, meta: &secret_meta::SecretMeta) -> Vec<u8> {
+    if keylength < 128 {
+        panic!("key is too short! keylength (bits): {}", keylength);
+    }
+    if keylength % 8 != 0 {
+        panic!("Key length should be a multiple of 8! Math is hard otherwise, got: {}", keylength);
+    }
+    let mut key = vec![0u8; keylength / 8];
+    match meta.kdf.name.as_ref() {
+        "pbkdf2" => {
+            if meta.kdf.iters < 10000 {
+                panic!("KDF iterations to low, got: {}", meta.kdf.iters);
+            }
+            match meta.kdf.algo.as_ref() {
+                "Sha256" => {
+                    let salt = decode(&meta.kdf.salt, &meta.mona);
+                    let iters = meta.kdf.iters as u32;
+                    pbkdf2::derive(&digest::SHA256, iters, &salt, master_pass, &mut key);
+                },
+                _ => panic!("Unknown pbkdf2 algo: {}", meta.kdf.algo)
+            };
+        },
+        _ => panic!("Unknown kdf: {}", meta.kdf.name)
+    };
+    
+    key
+}
+
+fn encrypt<'a>(master_pass: &[u8], plaintext: &[u8], meta: &secret_meta::SecretMeta) -> &'a[u8] {
+    &[0x8, 12]
+}
+
 fn main() {
     setup_repo();
     
@@ -52,6 +103,7 @@ fn main() {
     let data = &String::from("this is a test").into_bytes()[..];
     
     let mut key: [u8; 256 / 8] = [0u8; 256 / 8];
+
     pbkdf2::derive(&digest::SHA256, pbkdf2_iterations, salt, password.as_bytes(), &mut key);
     let sealing_key = aead::SealingKey::new(&algo, &key).unwrap();
     let sig_tag_len: usize = sealing_key.algorithm().tag_len();
