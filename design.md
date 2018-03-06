@@ -1,5 +1,9 @@
 # Mona: A transparently secure secret manager
 
+# Support for Multiple Encryption:
+https://en.wikipedia.org/wiki/Multiple_encryption
+
+
 binary to ascii encoding scheme: Base32 (we need filename and url safe strings)
 
 ## Encrypt a secret:
@@ -16,14 +20,14 @@ OUTPUTS:
 STEPS:
 ```
 encoded_metadata : [u8] = json_encode(metadata)
-write_file(filename + ".json", encoded_metadata)
 
 assert metadata.paranoid.key_derivation_iterations >= 1
+
 
 key : [u8] = passphrase
 for key_i in 0..metadata.paranoid.key_derivation_iterations:
     for key_algo in metadata.key_derivation:
-      key = key_algo.derive(key)
+        key = key_algo.derive(key)
 
 padded_plaintext : [u8] = allocate(metadata.plaintext_padding * 2 + plaintext.length);
 padded_plaintext[0..metadata.plaintext_padding] = random_bytes(num_bytes=metadata.plaintext_padding)
@@ -37,6 +41,7 @@ for encrypt_i in 0..metadata.paranoid.encrypt_iterations:
     for encrypt_algo in metadata.encrypt:
         ciphertext = encrypt_algo.encrypt(key, ciphertext)
 
+write_file(filename + ".json", encoded_metadata)
 write_file(filename, ciphertext)
 ```
 
@@ -45,41 +50,46 @@ For each encrypted file {encrypted_file_path} we have {encrypted_file_path}.json
 describes how {encrypted_file_path} was encrypted.
 
 ### Metadata Format 
-We use JSON since a well tested JSON parser exists for most languages.
-``` javascript
-# {encrypted_file_path}.json
-{
-  "key_derivation": [
-    { "name": "pbkdf2":
-      "algo": "<algo>"    # one of {"Sha256"}:            algorithm used by pbkdf2
-      "iters": <iters>,   # positive i32:       iterations argument to pbkdf2
-      "salt": "<salt>",   # base32 encoded string:        salt argument to pbkdf2
-    },
-	# ... more derivation algos here iterations here
-  ],
-  "encrypt": [
-    "aead": {
-      "nonce": "<nonce>", # base32 encoded string:        nonce used by aead
-      "algo": "<algo>",   # one of {"ChaCha20-Poly1305"}: algorithm used by aead
-    },
-    "<second_encryption_iteration>": {
-      "nonce": "<nonce>", # base32 encoded string:        nonce used by aead
-      "algo": "<algo>",   # one of {"ChaCha20-Poly1305"}: algorithm used by aead
-    }
-  ]
-  "paranoid": {
-    # Extra security for the *extra* paranoid
-    #
-    # These options are here to provide an attempt at future proofing encrypted data
-	# against unknown attacks on current crypto algorithms.
-	#
-	# ! These features are not required to have a secure system given our current
-	# understanding of cryptography
-	"plaintext_padding": <padding>, # positive i32: surround plaintext with n random bytes on both sides
-	"key_derivation_iters": <iters>, # positive i32: repeat key derivation <iter> number of times
-	"encrypt_iters": <iters>, # positive i32: repeat encryption <iter> number of times
-  }
-}
+
+```toml
+# encrypted/file.toml
+version = "0.0.1"
+
+[ kdf ]
+# Key derivation function config
+# Will add support for multiple kdf algorithms
+name = "pbkdf2" 
+algo = "Sha256" # algorithm to be used by pbkdf2
+iters = 100000  # positive i32: iterations argument to pbkdf2
+salt = "<salt>" # base32 encoded string: salt argument to pbkdf2
+
+[ plaintext ]
+# if plaintext is smaller than min_bits, plaintext will be extended to
+# min_bits with random bits
+#
+#     padded_plaintext : pad_len | random_bytes | plaintext
+#     pad_len : i32 - number of padding bytes
+#     random_bits : pad_len number of random bytes
+#
+# purpose is to hide length of short plaintext
+min_bits = 1024
+
+[ encrypt ]
+name = "aead"
+algo = "ChaCha20-Poly1305" # string: name of cipher 
+nonce = "<nonce>"          # base32 encoded string
+keylength = 256            # positive i32: numbert of bits
+
+[ paranoid ]
+# Extra security for the *extra* paranoid
+#
+# These options are here to provide an attempt at future proofing encrypted data
+# against unknown attacks on current crypto algorithms.
+#
+# ! These features are not required to have a secure system given our current
+# understanding of cryptography
+#
+# TAI: what should go here?
 ```
 
 ## generating a nonce:
