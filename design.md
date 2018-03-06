@@ -53,23 +53,24 @@ describes how {encrypted_file_path} was encrypted.
 
 ```toml
 # encrypted/file.toml
+[ mona ]
 version = "0.0.1"
 
-[ kdf ]
-# Key derivation function config
-# Will add support for multiple kdf algorithms
-name = "pbkdf2" 
+[ kdf ] # Key Derivation Function
+name = "pbkdf2"
 algo = "Sha256" # algorithm to be used by pbkdf2
 iters = 100000  # positive i32: iterations argument to pbkdf2
 salt = "<salt>" # base32 encoded string: salt argument to pbkdf2
 
-[ plaintext ]
+[ plaintext ] # Modifications to plaintext prior to encrypting
 # if plaintext is smaller than min_bits, plaintext will be extended to
-# min_bits with random bits
+# at least min_bits with random bytes
 #
 #     padded_plaintext : pad_len | random_bytes | plaintext
-#     pad_len : i32 - number of padding bytes
+#     pad_len : i32 = max(0, ceil((min_bits - plaintext.len() * 8) / 8.))
 #     random_bits : pad_len number of random bytes
+#
+# Total padded_plaintext length in bytes = 4 + pad_len + plaintext
 #
 # purpose is to hide length of short plaintext
 min_bits = 1024

@@ -54,14 +54,11 @@ fn main() {
     let mut key: [u8; 256 / 8] = [0u8; 256 / 8];
     pbkdf2::derive(&digest::SHA256, pbkdf2_iterations, salt, password.as_bytes(), &mut key);
     let sealing_key = aead::SealingKey::new(&algo, &key).unwrap();
-    let out_suffix_capacity: usize = sealing_key.algorithm().tag_len();
-    let mut in_out = vec![0u8; data.len() + out_suffix_capacity];
-    in_out[..data.len()].copy_from_slice(&data);
-    println!("nonce: {:?}", nonce);
-    println!("ad: {:?}", ad);
-    println!("in_out: {:?}", in_out);
-    println!("out_suffix_capacity: {:?}", out_suffix_capacity);
-    match aead::seal_in_place(&sealing_key, &nonce, &ad, &mut in_out, out_suffix_capacity) {
+    let sig_tag_len: usize = sealing_key.algorithm().tag_len();
+    let mut in_out = vec![0u8; data.len() + sig_tag_len];
+    in_out.extend(data.iter());
+
+    match aead::seal_in_place(&sealing_key, &nonce, &ad, &mut in_out, sig_tag_len) {
         Ok(size) => println!("sealed: Size {}", size),
         Err(e) => println!("Error sealing: {:?}", e)
     };
