@@ -152,5 +152,35 @@ We use JSON since a well tested JSON parser exists for most languages.
 }
 ```
 
+## Thoughts on secure browser crypto
+- mobile app stores offline cache of website ssl certificate.
+
+1. user visits https://mona.com/web (enforce ssl)
+2. user is told to take out his mobile phone and follow untrusted client instructions
+3. user is on app:
+   - user is given instructions on how to pull up fingerprint
+   - app has OCR feature to extract fingerprint -> compares against cache
+   - if different: warn user that this connection has been MITM'ed
+   - if matches: tell user the connection is secure
+   - TAI: we don't really need authenticity, we need content integrity
+
+4. if user has internet access from phone:
+   - website generates a private/public key pair
+   - website encodes public key in qr code
+   - website displays qr code and starts polling backend for encrypted metadata file
+   - user uses mobile app to take picture of qr code, decodes public key
+   - app decrypts metadata and re-encrypts metadata file using public key
+   - app sends encrypted metadata to backend
+   - website polling finds encrypted metadata and fetches it
+   - website decrypts metadata using private key
+   - website shows metadata and allows user to search for the secret they need
+   - user selects secret, website encodes secret identifier in QR code
+   - mobile app is used to decode QR code, and as before it decrypts and re-encrypts secret using stored public key, posts to backend
+   - website polls for secret and fetches and decrypts it.
+
+5. if user has no internet access from phone, warn user about possibility of keylongers, if user agrees to accept the risk, prompt user for master passphrase and have the website clone the git repository into memory and decrypt things as needed client side.
+
 ## TAI
 - synchronizing access to $MONA_HOME, this is custom to each client
+
+
