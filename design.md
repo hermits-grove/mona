@@ -71,17 +71,17 @@ encoding = "base64url"
 # purpose is to hide length of short plaintext
 min_bits = 1024
 
-[ kdf ] # Key Derivation Function
-name = "pbkdf2"
+[ kdf ] # Key Derivation Function configuration
+[ kdf.pbkdf2 ]
 algo = "Sha256" # algorithm to be used by pbkdf2
 iters = 100000  # positive i32: iterations argument to pbkdf2
 salt = "<salt>" # base32 encoded string: salt argument to pbkdf2
 
 [ encrypt ]
-name = "aead"
-algo = "ChaCha20-Poly1305" # string: name of cipher 
+[ encrypt.aead ]
+algo = "ChaCha20-Poly1305" # string: name of encryption algorithm
 nonce = "<nonce>"          # base32 encoded string
-keylength = 256            # positive i32: numbert of bits
+keylength = 256            # positive i32: number of bits. master pass phrase is stretched to this number of bits
 
 [ paranoid ]
 # Extra security for the *extra* paranoid
@@ -91,8 +91,26 @@ keylength = 256            # positive i32: numbert of bits
 #
 # ! These features are not required to have a secure system given our current
 # understanding of cryptography
-#
-# TAI: what should go here?
+
+# Simple Multiple Encryption is done using the method provided by Bruce Schneier:
+# - generate a random <pad> of the same size of the plaintext
+# - XOR the plaintext with the <pad> resulting in a <ciphertext1>.
+# - Encrypt the <pad> with <cipher1> and key1 -> <ciphertext2>
+# - encrypt <ciphertext1> with <cipher1> and key2 -> <ciphertext3>
+# - ciphertext4 = <ciphertext2>|<ciphertext3>
+# A cryptanalyst must break both ciphers to get any information
+# This will, however, have the drawback of making the ciphertext twice as long as the original plaintext.
+# 
+# This process can be repeated with a third cipher by treating <ciphertext4> as plaintext and going through the same process again
+[ paranoid.simple_multiple_encryption ]
+# TODO: figure out how to represent simple multiple encryption
+
+
+# Cascading Encryption:
+# ciphertext = cipher<N>(cipher<N-1>(...cipher1(plaintext, key1), ... key<N-1>), key<N>)
+[ paranoid.cascading_encryption ]
+# TODO: figure out how to represent cascading encryption
+
 ```
 
 ## generating a nonce:
