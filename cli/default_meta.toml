@@ -1,0 +1,64 @@
+version = "0.0.1"
+binary_encoding = "base64url"
+
+[plaintext]
+# Plaintext transformations prior to encrypting
+
+# min_bits
+#
+# if plaintext is smaller than min_bits, plaintext will be extended to
+# at least min_bits with random bytes
+#
+#     padded_plaintext : pad_len | random_bytes | plaintext
+#     pad_len : i32 = max(0, ceil((min_bits - plaintext.len() * 8) / 8.))
+#     random_bits : pad_len number of random bytes
+#
+# Total padded_plaintext length in bytes = 4 + pad_len + plaintext
+#
+# purpose:
+#   1. hide length of a short plaintext
+#   2. reduce likelihood of known plaintext attack
+min_bits = 1024
+
+[pbkdf2]
+# Key Derivation Function configuration
+#
+# The derived key bit length is pulled from the [ encrypt ] and [ paranoid ] settings.
+#
+# For example if paranoid.simple_multiple_encryption is enabled, then a bit length long enough to
+# extract unique keys for each of the encryption algorithms used will chosen.
+# key_length = length(key_for_cipher1) + length(key_for_cipher2) + ... + length(key_for_cipherN) 
+# key_from_kdf = <key_for_cipher1>|<key_for_cipher2>|...|<key_for_cipherN>
+algo = "Sha256" # algorithm to be used by pbkdf2
+iters = 100000  # positive i32: iterations argument to pbkdf2
+salt = "<salt>" # base32 encoded string: salt argument to pbkdf2
+
+[aead]
+algo = "ChaCha20-Poly1305" # string: name of encryption algorithm
+nonce = "<nonce>"          # binary encoded text
+keylen = 256            # positive i32: number of bits. master pass phrase is stretched to this number of bits
+
+[paranoid]
+# Extra security for the *extra* paranoid
+#
+# These options are here to provide an attempt at future proofing encrypted data
+# against unknown attacks on current crypto algorithms.
+#
+# ! These features are not required to secure your data given our current
+# understanding of cryptography
+
+# Simple Multiple Encryption is done using the method provided by Bruce Schneier:
+# - generate a random <pad> of the same size of the plaintext
+# - XOR the plaintext with the <pad> resulting in <ciphertext1>.
+# - Encrypt the <pad> with <cipher1> and <key1> -> <ciphertext2>
+# - encrypt <ciphertext1> with <cipher2> and <key2> -> <ciphertext3>
+# - final_ciphertext = <ciphertext2>|<ciphertext3>
+# A cryptanalyst must break both ciphers to get any information
+# This will, however, have the drawback of making the ciphertext twice as long as the original plaintext.
+# 
+# This process can be repeated with a third cipher by treating <ciphertext4> as plaintext and going through the same process again
+simple_multiple_encryption = "TBD"
+
+# Cascading Encryption:
+# ciphertext = cipher<N>(cipher<N-1>(...cipher1(plaintext, key1), ... key<N-1>), key<N>)
+cascading_encryption = "TBD"

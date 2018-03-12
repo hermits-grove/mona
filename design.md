@@ -1,11 +1,6 @@
 # Mona: A transparently secure secret manager
-
-# Support for Multiple Encryption:
-https://en.wikipedia.org/wiki/Multiple_encryption
-
-
-binary to ascii encoding scheme: Base32 (we need filename and url safe strings)
-
+## THINGS TO LOOK INTO:
+- Password strength estimation: https://github.com/tsyrogit/zxcvbn-c
 ## Encrypt a secret:
 INPUTS:
 - master_passphrase: u8 array
@@ -53,12 +48,13 @@ describes how {encrypted_file_path} was encrypted.
 ### Metadata Format 
 
 ```toml
-# encrypted/file.toml
+# encrypted_file.toml
 [ mona ]
 version = "0.0.1"
-encoding = "base64url"
+binary_encoding = "base64url"
 
-[ plaintext ] # Modifications to plaintext prior to encrypting
+# Modifications to plaintext prior to encrypting
+[ plaintext ]
 # if plaintext is smaller than min_bits, plaintext will be extended to
 # at least min_bits with random bytes
 #
@@ -71,7 +67,8 @@ encoding = "base64url"
 # purpose is to hide length of short plaintext
 min_bits = 1024
 
-[ kdf ] # Key Derivation Function configuration
+# Key Derivation Function configuration
+[ kdf ]
 [ kdf.pbkdf2 ]
 algo = "Sha256" # algorithm to be used by pbkdf2
 iters = 100000  # positive i32: iterations argument to pbkdf2
