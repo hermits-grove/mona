@@ -2,19 +2,16 @@ use std::fs::File;
 use std::io::Read;
 use std::io::Write;
 use std::path::Path;
-use std::error::Error;
 
 use ring;
 use ring::rand::SecureRandom;
 
-extern crate data_encoding;
-
 use toml;
+use git_db;
 
 #[derive(Serialize, Deserialize, Debug, Clone)]
 pub struct Meta {
     pub version: String,
-    pub binary_encoding: String,
     pub plaintext: Plaintext,
     pub pbkdf2: PBKDF2,
     pub aead: AEAD,
@@ -51,22 +48,35 @@ impl Meta {
         let default_meta = Meta::from_file(Path::new("./default_meta.toml"))?;
         
         let mut salt = vec![0u8; 96 / 8 ];
-        let mut nonce = vec![0u8; 96 / 8];
         let rng = ring::rand::SystemRandom::new();
         rng.fill(&mut salt)
             .map_err(|e| format!("Failed to generate secure salt: {:?}", e))?;
+
+        
+        let mut nonce = vec![0u8; 96 / 8];
         rng.fill(&mut nonce)
             .map_err(|e| format!("Failed to generate secure nonce: {:?}", e))?;
-
-        // TODO: check generated nonce against burned_nonces
-
+        
+        // check generated nonce against $MONA_HOME/burnt_nonces and add it to the
+        // file if it hasn never been used to encrypt before
+        let mut max_attempts = 10;
+        while let Err(msg) = git_db::burn_nonce(&nonce) {
+            max_attempts -= 1;
+            if max_attempts == 0 {
+                return Err(format!("Failed to generate a unique nonce: {}", msg));
+            }
+            
+            rng.fill(&mut nonce)
+                .map_err(|e| format!("Failed to generate secure nonce: {:?}", e))?;
+        }
+        
         let meta = Meta {
             pbkdf2: PBKDF2 {
-                salt: default_meta.encode(&salt),
+                salt: git_db::encode(&salt),
                 ..default_meta.pbkdf2.clone()
             },
             aead: AEAD {
-                nonce: default_meta.encode(&nonce),
+                nonce: git_db::encode(&nonce),
                 ..default_meta.aead.clone()
             },
             ..default_meta.clone()
@@ -99,25 +109,5 @@ impl Meta {
                             .map_err(|e| format!("Failed write to meta file {:?}: {:?}", path, e))
                     })
             })
-    }
-
-    pub fn decode(&self, encoded: &String) -> Vec<u8> {
-        let encoding = match self.binary_encoding.as_ref() {
-            "base64url" => data_encoding::BASE64URL,
-            s => panic!("Unknonw encoding algorithm: {}", s)
-        };
-        let decoded = match encoding.decode(encoded.as_bytes()) {
-            Ok(decoded) => decoded,
-            Err(err) => panic!("Failed to decode string: {:?}", err)
-        };
-        decoded
-    }
-
-    pub fn encode(&self, data: &Vec<u8>) -> String {
-        let encoding = match self.binary_encoding.as_ref() {
-            "base64url" => data_encoding::BASE64URL,
-            s => panic!("Unknonw encoding algorithm: {}", s)
-        };
-        encoding.encode(data)
     }
 }
