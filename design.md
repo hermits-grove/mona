@@ -201,6 +201,51 @@ We use JSON since a well tested JSON parser exists for most languages.
 
 ## GIT DB
 
+_Encrypted key value store built on top of Git._
+
+key: a user chosen file path
+value: binary blob
+
+
+A blob is represented by two files on disk with garbled paths
+
 ```
-git_db::DB::init(path: &Path) -> git_db::DB
+git_db_root/
+├── .git/...
+├── <garble>/
+│   ├── <garble>      # The encrypted data
+│   └── <garble>.toml # Plaintext TOML file with encryption details
+│...
 ```
+
+A mapping from the key (the user provided lookup path) and the garbled path is stored in an encrypted manifest file in the root directory
+
+```
+git_db_root/
+├── manifest         # encrypted manifest
+├── manifest.toml    # plaintext manifest encryption details
+│...
+```
+
+Each entry in the Git DB has an entry in the manifest that looks like:
+
+```toml
+[[entries]]
+path = ["path", "to", "file.txt"]    # normalized form of 'path/to/file.txt'
+tags = ["optional", "tags", "for", "queries"]
+garbled_path = ["<garble>", "<garble>",...] # randomly generated path
+```
+
+_git db looks up a file_
+1. git-db decrypts manifest with instrucrions from "manifest.toml"
+2. scan entries for a path matching their <lookup path>
+3. if match found, extract matching <garbled path>.
+5. git-db decrypts the <garbled path> file with instructions from <garbled path>.toml
+
+
+_notes_
+- garbled path is required to hide information leaked by structure of repository
+- keys are derived using some varient of kdf(pass, salt). Per blob salt will give us
+  a unique secret key for each encrypted blob ==> sad days for NSA
+- nothing is stopping users from using different passwords to encrypt seperate files
+
