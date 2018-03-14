@@ -1,95 +1,40 @@
 # Mona: A transparently secure secret manager
+
 ## THINGS TO LOOK INTO:
 - Password strength estimation: https://github.com/tsyrogit/zxcvbn-c
-## Encrypt a secret:
-INPUTS:
-- master_passphrase: u8 array
-- plaintext_secret: u8 array
-- ciphertext_filepath: String
-- metadata: see Metadata Format
-
-OUTPUTS:
-- Metadata is json encoded and written to {filename}.json
-- Encrypted file is written to {filename}
-
-Pseudocode
-``` rust
-
-# ASSUME
-# metadata.kdf.name == "pbkdf2"
-# metadata.kdf.algo == "
-key : [u8] = passphrase
-for key_i in 0..metadata.paranoid.key_derivation_iterations:
-    for key_algo in metadata.key_derivation:
-        key = key_algo.derive(key)
-
-padded_plaintext : [u8] = allocate(metadata.plaintext_padding * 2 + plaintext.length);
-padded_plaintext[0..metadata.plaintext_padding] = random_bytes(num_bytes=metadata.plaintext_padding)
-padded_plaintext[metadata.plaintext_padding..plaintext.length] = plaintext;
-padded_plaintext[plaintext.length + metadata.plaintext_padding..] = random_bytes(num_bytes=metadata.plaintext_padding);
-
-assert metadata.paranoid.encrypt_iterations >= 1
-encoded_metadata : [u8] = toml_encode(metadata)
-
-
-ciphertext : [u8] = padded_plaintext
-for encrypt_i in 0..metadata.paranoid.encrypt_iterations:
-    for encrypt_algo in metadata.encrypt:
-        ciphertext = encrypt_algo.encrypt(key, ciphertext)
-
-write_file(filename + ".json", encoded_metadata)
-write_file(filename, ciphertext)
-```
-
 ## Metadata File
 For each encrypted file {encrypted_file_path} we have {encrypted_file_path}.json which
 describes how {encrypted_file_path} was encrypted.
 
-### Metadata Format 
+_Metadata Format:_
 
 ```toml
-# encrypted_file.toml
-[ mona ]
-version = "0.0.1"
-binary_encoding = "base64url"
+#<garble>.toml
+#  - accompanying file to the encrypted file with path: <garble>
+version = "0.0.1"          # mona client version number
 
-# Modifications to plaintext prior to encrypting
-[ plaintext ]
-# if plaintext is smaller than min_bits, plaintext will be extended to
-# at least min_bits with random bytes
-#
-#     padded_plaintext : pad_len | random_bytes | plaintext
-#     pad_len : i32 = max(0, ceil((min_bits - plaintext.len() * 8) / 8.))
-#     random_bits : pad_len number of random bytes
-#
-# Total padded_plaintext length in bytes = 4 + pad_len + plaintext
-#
-# purpose is to hide length of short plaintext
-min_bits = 1024
+[plaintext]
+min_bits = 1024            # plaintext is padded to this min bit length
 
-# Key Derivation Function configuration
-[ kdf ]
-[ kdf.pbkdf2 ]
-algo = "Sha256" # algorithm to be used by pbkdf2
-iters = 100000  # positive i32: iterations argument to pbkdf2
-salt = "<salt>" # base32 encoded string: salt argument to pbkdf2
+[pbkdf2]
+algo = "Sha256"            # digest algo used by pbkdf2
+iters = 1000000            # iterations done by pbkdf2
+salt = "4ZHmDMPkbOfpnKCh"  # salt given to pbkdf2
 
-[ encrypt ]
-[ encrypt.aead ]
-algo = "ChaCha20-Poly1305" # string: name of encryption algorithm
-nonce = "<nonce>"          # base32 encoded string
-keylength = 256            # positive i32: number of bits. master pass phrase is stretched to this number of bits
+[aead]
+algo = "ChaCha20-Poly1305" # AEAD block cipher algo
+nonce = "tL8UZ79l0wWtzmfj" # nonce which was used to encrypt matching file
+keylen = 256               # length of secret key which was used to encrypt
 
-[ paranoid ]
+[paranoid]
 # Extra security for the *extra* paranoid
 #
 # These options are here to provide an attempt at future proofing encrypted data
 # against unknown attacks on current crypto algorithms.
 #
-# ! These features are not required to have a secure system given our current
-# understanding of cryptography
+# ! Given current understanding of crypto these are NOT REQUIRED FOR A SECURE SYSTEM.
 
-# Simple Multiple Encryption is done using the method provided by Bruce Schneier:
+# Simple Multiple Encryption is done using the method described by Bruce Schneier:
 # - generate a random <pad> of the same size of the plaintext
 # - XOR the plaintext with the <pad> resulting in a <ciphertext1>.
 # - Encrypt the <pad> with <cipher1> and key1 -> <ciphertext2>
@@ -99,72 +44,47 @@ keylength = 256            # positive i32: number of bits. master pass phrase is
 # This will, however, have the drawback of making the ciphertext twice as long as the original plaintext.
 # 
 # This process can be repeated with a third cipher by treating <ciphertext4> as plaintext and going through the same process again
-[ paranoid.simple_multiple_encryption ]
-# TODO: figure out how to represent simple multiple encryption
-
+simple_multiple_encryption = "TBD" # not implemented yet
 
 # Cascading Encryption:
-# ciphertext = cipher<N>(cipher<N-1>(...cipher1(plaintext, key1), ... key<N-1>), key<N>)
-[ paranoid.cascading_encryption ]
-# TODO: figure out how to represent cascading encryption
-
+# ciphertext = cipher<N>(key<N>, cipher<N-1>(key<N-1>..cipher1(key1, plaintext)...))
+# -- nesting different ciphers all with *unique* keys
+cascading_encryption = "TBD"       # not implemented yet
 ```
 
-## generating a nonce:
-$MONA_HOME/burned_nonces file contains a list of base32 encoded nonces which have
+## AEAD nonce
+$MONA_HOME/burned_nonces file contains a list of nonces which have
 previously been used to encrypt files.
+
 A new nonce must be checked against this list to verify it has never been used to
 encrypt a file.
-
-### $MONA_HOME/burned_nonces
-base32 encoded nonces seperated by newlines
-e.g.
-```
-MFRGGZDBMJRWIYLCMNSGCYTDMRSXG===
-ONSGUZR3NRQXGZDLNJTGC3DTMQ5WM===
-...
-```
-
-### STEPS TO GENERATE A NONCE
-1. Generate a random value (currently 96 bits)
-2. Check that it does not exist in the `burned_nonces`
-3. Add it to `burned_nonces`
-
 
 ## Manifest
 Encrypted file containing lookup information about stored secrets.
 
 ### Manifest Format
-We use JSON since a well tested JSON parser exists for most languages.
+A list of entries stored in git-db with their associated data
 
-``` javascript
-{
-  "<path/to/secret>": {
-    "type": "file",
-    "tags": ["news.ycombinator.com", "hacker", "news", ...],
-    "<client_name>": {
-      # mona clients are free to add additional lookup data
-    },
-	"<client_name2>": {
-      # ...
-    }
-  }
-  "path/to": {
-    "type": "dir",
-    "tags": ["social"],
-    # ...
-  }
-  "path": {
-    "type": "dir",
-    "tags": ["passwords"],
-    ...
-  }
-  "path2": {
-    "type": "dir",
-    "tags": ["files"],
-    ...
-  }
-}
+```toml
+[[entries]]
+path = ["misc", "new.ycombinator.com"]
+tags = ["hacker", "news", "social", "ycombinator"]
+garbled_path = ["lj01g7OD8g30F6X9"]
+
+[[entries]]
+path = ["misc", "www.facebook.com"]
+tags = ["facebook", "social"]
+garbled_path = ["lj01g7OD8g30F6X9"]
+
+[[entries]]
+path = ["misc", "mail.protonmail.com"]
+tags = ["mail", "protonmail", "social"]
+garbled_path = ["lj01g7OD8g30F6X9"]
+
+[[entries]]
+path = ["work", "mona", "design.md"]
+tags = []
+garbled_path = ["lj01g7OD8g30F6X9"]
 ```
 
 ## Thoughts on secure browser crypto
@@ -243,13 +163,11 @@ tags = ["optional", "tags", "for", "queries"]
 garbled_path = ["<garble>", "<garble>"] # randomly generated path
 ```
 
-
 _how git db looks up a file:_
 1. git-db decrypts manifest with instrucrions from "manifest.toml"
 2. scan entries for a path matching their <lookup path>
 3. if match found, extract matching <garbled path>.
 5. git-db decrypts the <garbled path> file with instructions from <garbled path>.toml
-
 
 _notes:_
 - garbled path is required to hide information leaked by structure of repository
