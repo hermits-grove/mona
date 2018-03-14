@@ -7,6 +7,8 @@ extern crate ring;
 use std::path::{Path, PathBuf};
 use std::fs::File;
 use std::io::Read;
+use std::io::Write;
+use std::io::stdout;
 
 mod git_db;
 mod secret_meta;
@@ -39,10 +41,24 @@ fn main() {
                     .version("0.0.1")
                     .arg(clap::Arg::with_name("plaintext_file")
                          .required(true)
-                         .help("file to encrypt")))
+                         .help("file to encrypt"))
+                    .arg(clap::Arg::with_name("lookup_path")
+                         .required(true)
+                         .help("path to be used to lookup this file"))
+                    .arg(clap::Arg::with_name("tag")
+                         .short("t")
+                         .multiple(true)
+                         .takes_value(true)
+                         .help("tags to help you find this file later")))
         .subcommand(clap::SubCommand::with_name("ls")
                     .about("List files managed by mona")
-                    .version("0.0.1"));
+                    .version("0.0.1"))
+        .subcommand(clap::SubCommand::with_name("cat")
+                    .about("Cat a file managed by mona")
+                    .version("0.0.1")
+                    .arg(clap::Arg::with_name("lookup_path")
+                         .required(true)
+                         .help("path to of file to cat")));
 
     let matches = app
         .get_matches_from_safe_borrow(std::env::args_os())
@@ -55,14 +71,20 @@ fn main() {
     match matches.subcommand() {
         ("encrypt", Some(sub_m)) => {
             let path = Path::new(sub_m.value_of("plaintext_file").unwrap());
+            let lookup_path: Vec<String> = Path::new(sub_m.value_of("lookup_path").unwrap())
+                .iter()
+                .map(|s| String::from(s.to_str().unwrap()))
+                .collect();
+                                                     
+            let tags: Vec<_> = sub_m.values_of("tag").unwrap().collect();
+            
             let mut f = File::open(path).expect("Failed to open");
-
             let mut data = Vec::new();
             f.read_to_end(&mut data).expect("Failed read");
 
             let entry_req = manifest::EntryRequest {
-                path: vec![String::from("secret"), String::from("file.txt")],
-                tags: vec![String::from("tag1"), String::from("tag2")]
+                path: lookup_path,
+                tags: tags.iter().map(|s| String::from(*s)).collect()
             };
 
             let encrypted = git_db::Plaintext {
@@ -71,6 +93,18 @@ fn main() {
             }.encrypt().expect("Failed to encrypt");
             
             db.put(&entry_req, &encrypted).expect("Failed to put");
+        },
+        ("cat", Some(sub_m)) => {
+            let lookup_path: Vec<String> = Path::new(sub_m.value_of("lookup_path").unwrap())
+                .iter()
+                .map(|s| String::from(s.to_str().unwrap()))
+                .collect();
+            
+            let plaintext = db
+                .fetch(&lookup_path).expect("lookup failed")
+                .decrypt().expect("Failed decryption");
+            print!("{}", String::from_utf8(plaintext.data).expect("Found invalid UTF-8"));
+            stdout().flush().ok();
         },
         ("ls", Some(sub_m)) => {
             let manifest = db.fetch_manifest().expect("Failed manifest fetch");

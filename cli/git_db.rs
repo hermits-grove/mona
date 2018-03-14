@@ -238,6 +238,17 @@ impl DB {
         Ok(())     
     }
 
+    pub fn fetch(&self, path: &Vec<String>) -> Result<Encrypted, String> {
+        let root = root_path(&self.repo)?;
+        let manifest = read_manifest(&self.repo)?;
+        for e in manifest.entries.iter() {
+            if &e.path == path {
+                return Encrypted::read(&root.join(&e.obfuscated_path));
+            }
+        }
+        Err(format!("No entry with given path: {:?}", path))
+    }
+
     pub fn fetch_manifest(&self) -> Result<manifest::Manifest, String> {
         read_manifest(&self.repo)
     }
