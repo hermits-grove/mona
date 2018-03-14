@@ -1,13 +1,12 @@
 use std::fs::File;
 use std::io::Read;
 use std::io::Write;
-use std::path::Path;
-
-use ring;
-use ring::rand::SecureRandom;
+use std::path::PathBuf;
 
 use toml;
+
 use git_db;
+use encrypt;
 
 #[derive(Serialize, Deserialize, Debug, Clone)]
 pub struct Meta {
@@ -44,31 +43,34 @@ pub struct Paranoid {
 }
 
 impl Meta {
-    pub fn generate_secure_meta() -> Result<Meta, String> {
-        let default_meta = Meta::from_file(Path::new("./default_meta.toml"))?;
-        
-        let mut salt = vec![0u8; 96 / 8 ];
-        let rng = ring::rand::SystemRandom::new();
-        rng.fill(&mut salt)
-            .map_err(|e| format!("Failed to generate secure salt: {:?}", e))?;
-
-        
-        let mut nonce = vec![0u8; 96 / 8];
-        rng.fill(&mut nonce)
-            .map_err(|e| format!("Failed to generate secure nonce: {:?}", e))?;
-        
-        // check generated nonce against $MONA_HOME/burnt_nonces and add it to the
-        // file if it hasn never been used to encrypt before
-        let mut max_attempts = 10;
-        while let Err(msg) = git_db::burn_nonce(&nonce) {
-            max_attempts -= 1;
-            if max_attempts == 0 {
-                return Err(format!("Failed to generate a unique nonce: {}", msg));
+    pub fn default_meta() -> Result<Meta, String> {
+        Ok(Meta {
+            version: String::from("0.0.1"),
+            plaintext: Plaintext {
+                min_bits: 1024
+            },
+            pbkdf2: PBKDF2 {
+                algo: String::from("Sha256"),
+                iters: 1_000_000,
+                salt: git_db::encode(&encrypt::generate_rand_bits(96)?)
+            },
+            aead: AEAD {
+                algo: String::from("ChaCha20-Poly1305"),
+                nonce: git_db::encode(&encrypt::generate_rand_bits(96)?),
+                keylen: 256
+            },
+            paranoid: Paranoid {
+                simple_multiple_encryption: String::from("TBD"),
+                cascading_encryption: String::from("TBD")
             }
-            
-            rng.fill(&mut nonce)
-                .map_err(|e| format!("Failed to generate secure nonce: {:?}", e))?;
-        }
+        })
+    }
+    
+    pub fn generate_secure_meta(db: &git_db::DB) -> Result<Meta, String> {
+        let default_meta = Meta::default_meta()?;
+        
+        let salt = encrypt::generate_rand_bits(96)?;
+        let nonce = db.generate_nonce()?;
         
         let meta = Meta {
             pbkdf2: PBKDF2 {
@@ -84,7 +86,7 @@ impl Meta {
         Ok(meta)
     }
 
-    pub fn from_file(path: &Path) -> Result<Meta, String> {
+    pub fn from_toml(path: &PathBuf) -> Result<Meta, String> {
         File::open(path)
             .map_err(|e| format!("Failed to open {:?}: {:?}", path, e))
             .and_then(|mut f| {
@@ -98,7 +100,7 @@ impl Meta {
             })
     }
 
-    pub fn write_file(&self, path: &Path) -> Result<(), String> {
+    pub fn write_toml(&self, path: &PathBuf) -> Result<(), String> {
         toml::to_vec(&self)
             .map_err(|e| format!("Failed to serialize meta {:?}", e))
             .and_then(|serialized_meta| {

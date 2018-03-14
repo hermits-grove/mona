@@ -36,7 +36,7 @@ salt = "<salt>" # base32 encoded string: salt argument to pbkdf2
 [aead]
 algo = "ChaCha20-Poly1305" # string: name of encryption algorithm
 nonce = "<nonce>"          # binary encoded text
-keylen = 256            # positive i32: number of bits. master pass phrase is stretched to this number of bits
+keylen = 256               # positive i32: number of bits. master pass phrase is stretched to this number of bits
 
 [paranoid]
 # Extra security for the *extra* paranoid

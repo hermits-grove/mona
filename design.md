@@ -199,3 +199,8 @@ We use JSON since a well tested JSON parser exists for most languages.
 - synchronizing access to $MONA_HOME, this is custom to each client
 
 
+## GIT DB
+
+```
+git_db::DB::init(path: &Path) -> git_db::DB
+```
