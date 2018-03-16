@@ -10,14 +10,14 @@ pub struct Manifest {
 pub struct Entry {
     
     // e.g ["pass", "social", "www.facebook.com"] represents the file "pass/social/www.facebook.com"
-    pub path: Vec<String>,
+    pub path: String,
     
      // e.g. ["password", "social"] - used to improve queries 
     pub tags: Vec<String>,
     
-    // e.g. "lj01g7OD8g30F6X9" - files are stored in top level directory with obfuscated names - done to avoid leaking information from structure of repository
-    // this entry represents the files ./<obfuscated> and ./<obfuscated>.toml
-    pub obfuscated_path: String
+    // e.g. "lj01g7OD8g30F6X9" - files are stored in top level directory with garbled names - done to avoid leaking information from structure of repository
+    // this entry represents the files ./<garbled> and ./<garbled>.toml
+    pub garbled_path: String
 }
 
 
@@ -25,10 +25,10 @@ pub struct Entry {
 pub struct EntryRequest {
     
     // e.g ["pass", "social", "www.facebook.com"] represents the file "pass/social/www.facebook.com"
-    pub path: Vec<String>,
+    pub path: String,
     
      // e.g. ["password", "social"] - used to improve queries 
-    pub tags: Vec<String>,
+    pub tags: Vec<String>
 }
 
 impl Manifest {
@@ -46,5 +46,33 @@ impl Manifest {
     pub fn to_toml_bytes(&self) -> Result<Vec<u8>, String> {
         toml::to_vec(&self)
             .map_err(|e| format!("Failed to serialize manifest {:?}", e))
+    }
+}
+
+impl EntryRequest {
+    pub fn new(path: &String, tags: &Vec<String>) -> Result<EntryRequest, String>{
+        EntryRequest::validate_lookup(path)?;
+        Ok(EntryRequest {
+            path: path.clone(),
+            tags: tags.clone()
+        })
+    }
+    
+    fn validate_lookup(lookup: &String) -> Result<(), String> {
+        for comp in lookup.split("/") {
+            let trimmed = comp.trim();
+
+            if comp == "/" || comp == "\\" {
+                return Err(format!("lookup path must not start or end in '/' or '\\'"))
+            }
+            if comp.len() == 0 {
+                return Err(format!("Found empty path component: '{}'\nlookup paths should not start or end with a component seperator", comp));
+            }
+            
+            if trimmed.len() != comp.len() {
+                return Err(format!("Lookup path component '{}' contains extra whitespace", comp));
+            }
+        }
+        Ok(())
     }
 }

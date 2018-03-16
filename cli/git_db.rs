@@ -197,7 +197,7 @@ impl DB {
 
     fn put_entry(&self, entry: manifest::Entry, data: &Encrypted) -> Result<(), String> {
         let root = try!(root_path(&self.repo));
-        let entry_path = root.join(&entry.obfuscated_path);
+        let entry_path = root.join(&entry.garbled_path);
 
         data.write(&entry_path)?;
 
@@ -205,7 +205,7 @@ impl DB {
 
         for e in manifest.entries.iter() {
             if e.path == entry.path {
-                return Err(format!("Entry with path {:?} already exists", entry.path.join("/")));
+                return Err(format!("Entry with path {:?} already exists", entry.path));
             }
         }
 
@@ -223,27 +223,27 @@ impl DB {
     pub fn put(&self, entry_req: &manifest::EntryRequest, data: &Encrypted) -> Result<(), String> {
         let root = root_path(&self.repo)?;
 
-        let mut obfuscated = encode(&encrypt::generate_rand_bits(96)?);
-        while root.join(&obfuscated).exists() {
-            obfuscated = encode(&encrypt::generate_rand_bits(96)?);
+        let mut garbled = encode(&encrypt::generate_rand_bits(96)?);
+        while root.join(&garbled).exists() {
+            garbled = encode(&encrypt::generate_rand_bits(96)?);
         }
 
         let entry = manifest::Entry {
             path: entry_req.path.clone(),
             tags: entry_req.tags.clone(),
-            obfuscated_path: obfuscated
+            garbled_path: garbled
         };
 
         self.put_entry(entry, &data)?;
         Ok(())     
     }
 
-    pub fn fetch(&self, path: &Vec<String>) -> Result<Encrypted, String> {
+    pub fn fetch(&self, path: &String) -> Result<Encrypted, String> {
         let root = root_path(&self.repo)?;
         let manifest = read_manifest(&self.repo)?;
         for e in manifest.entries.iter() {
             if &e.path == path {
-                return Encrypted::read(&root.join(&e.obfuscated_path));
+                return Encrypted::read(&root.join(&e.garbled_path));
             }
         }
         Err(format!("No entry with given path: {:?}", path))

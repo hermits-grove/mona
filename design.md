@@ -3,7 +3,7 @@
 ## THINGS TO LOOK INTO:
 - Password strength estimation: https://github.com/tsyrogit/zxcvbn-c
 ## Metadata File
-For each encrypted file {encrypted_file_path} we have {encrypted_file_path}.json which
+For each encrypted file {encrypted_file_path} we have {encrypted_file_path}.toml which
 describes how {encrypted_file_path} was encrypted.
 
 _Metadata Format:_
@@ -67,24 +67,24 @@ A list of entries stored in git-db with their associated data
 
 ```toml
 [[entries]]
-path = ["misc", "new.ycombinator.com"]
-tags = ["hacker", "news", "social", "ycombinator"]
-garbled_path = ["lj01g7OD8g30F6X9"]
+path = "misc/new.ycombinator.com"
+tags = "hacker/news/social/ycombinator"
+garbled_path = "lj01g7OD8g30F6X9"
 
 [[entries]]
-path = ["misc", "www.facebook.com"]
+path = "misc/www.facebook.com"
 tags = ["facebook", "social"]
-garbled_path = ["lj01g7OD8g30F6X9"]
+garbled_path = "-If9my6XE9T7mGJ9"
 
 [[entries]]
-path = ["misc", "mail.protonmail.com"]
+path = "misc/mail.protonmail.com"
 tags = ["mail", "protonmail", "social"]
-garbled_path = ["lj01g7OD8g30F6X9"]
+garbled_path = "lj01g7OD8g30F6X9"
 
 [[entries]]
-path = ["work", "mona", "design.md"]
+path = "work/mona/design.md"
 tags = []
-garbled_path = ["lj01g7OD8g30F6X9"]
+garbled_path = "lj01g7OD8g30F6X9"
 ```
 
 ## Thoughts on secure browser crypto
