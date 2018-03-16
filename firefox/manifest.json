@@ -1,19 +1,16 @@
 {
   "manifest_version": 2,
   "name": "Mona",
-  "version": "1.0",
-
+  "version": "0.0.1",
   "description": "Password Managers minus Trust",
-
+  "homepage_url": "https://github.com/mona-pass/mona",
   "icons": {
     "48": "icons/mona-48.png"
   },
-
   "content_scripts": [
     {
-      "matches": ["*"],
-      "js": ["bundle.js"]
+      "matches": [ "*://*/*" ],
+      "js": [ "index.js" ]
     }
   ]
-
 }
