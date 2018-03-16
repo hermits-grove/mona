@@ -207,14 +207,15 @@ impl DB {
 
         data.write(&entry_path)?;
 
-        let manifest = read_manifest(&self.repo)?;
-
-        for e in manifest.entries.iter() {
+        let manifest_old = read_manifest(&self.repo)?;
+        for e in manifest_old.entries.iter() {
             if e.path == entry.path {
-                return Err(format!("Entry with path {:?} already exists", entry.path));
+                self.rm(&entry.path)?; // TODO: use proper error messages so that we don't have to loop over manifest twice here
+                break;
             }
         }
 
+        let manifest = read_manifest(&self.repo)?;
         let mut updated_entries: Vec<manifest::Entry> = manifest.entries.clone();
         updated_entries.push(entry);
         
