@@ -3,8 +3,7 @@ use self::git2::Repository;
 extern crate data_encoding;
 
 use std::path::{Path, PathBuf};
-use std::fs::OpenOptions;
-use std::fs::File;
+use std::fs::{OpenOptions, File, remove_file};
 use std::io::Read;
 use std::io::Write;
 
@@ -89,6 +88,7 @@ impl Encrypted {
         let pass = encrypt::read_password_stdin()?;
 
         let data = encrypt::decrypt(&pass.as_bytes(), &self.data, &self.meta)?;
+        
         let plaintext = Plaintext {
             data: data,
             meta: self.meta.clone()
@@ -106,7 +106,9 @@ fn read_manifest(repo: &git2::Repository) -> Result<manifest::Manifest, String> 
     let root = root_path(&repo)?;
 
     let manifest_path = root.join("manifest");
-    let manifest_bytes = Encrypted::read(&manifest_path)?.decrypt()?.data;
+    let manifest_bytes = Encrypted::read(&manifest_path)?.decrypt()
+        .map_err(|s| format!("Failed to decrypt manifest {:?} with error: {}", manifest_path, s))
+        ?.data;
 
     manifest::Manifest::from_toml_bytes(&manifest_bytes)
 }
@@ -127,6 +129,10 @@ impl DB {
         Ok(DB {
             repo: repo,
         })
+    }
+
+    pub fn root(&self) -> Result<&Path, String> {
+        root_path(&self.repo)
     }
 
     fn write_manifest(&self, manifest: &manifest::Manifest) -> Result<(), String>{
@@ -221,6 +227,8 @@ impl DB {
     }
 
     pub fn put(&self, entry_req: &manifest::EntryRequest, data: &Encrypted) -> Result<(), String> {
+        entry_req.validate()?;
+        
         let root = root_path(&self.repo)?;
 
         let mut garbled = encode(&encrypt::generate_rand_bits(96)?);
@@ -246,10 +254,36 @@ impl DB {
                 return Encrypted::read(&root.join(&e.garbled_path));
             }
         }
-        Err(format!("No entry with given path: {:?}", path))
+        Err(format!("No entry with given path: {}", path))
     }
 
     pub fn fetch_manifest(&self) -> Result<manifest::Manifest, String> {
         read_manifest(&self.repo)
+    }
+
+    pub fn rm(&self, path: &String) -> Result<(), String> {
+        let manifest = read_manifest(&self.repo)?;
+        let matching_entries: Vec<&manifest::Entry> = manifest.entries.iter().filter(|e| &e.path == path).collect();
+        if matching_entries.len() == 0 {
+            return Err(format!("No entry with given path: {}", path));
+        } else if matching_entries.len() > 1 {
+            return Err(format!("Multiple entries with given path: {}, this should not happen!", path));
+        }
+
+        let entry = matching_entries[0];
+
+        let root = root_path(&self.repo)?;
+        let garbled_path = remove_file(&root.join(&entry.garbled_path))
+            .map_err(|s| format!("Failed to remove encrypted: {}", s))?;
+        let garbled_toml_path = remove_file(&root.join(&entry.garbled_path).with_extension("toml"))
+            .map_err(|s| format!("Failed to remove encrypted: {}", s))?;
+
+        let updated_entries: Vec<manifest::Entry> = manifest.entries.iter().filter(|e| &e.path != path).map(|e| e.clone()).collect();
+        
+        let updated_manifest = manifest::Manifest {
+            entries: updated_entries,
+            ..manifest
+        };
+        self.write_manifest(&updated_manifest)
     }
 }

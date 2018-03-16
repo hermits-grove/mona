@@ -50,16 +50,15 @@ impl Manifest {
 }
 
 impl EntryRequest {
-    pub fn new(path: &String, tags: &Vec<String>) -> Result<EntryRequest, String>{
-        EntryRequest::validate_lookup(path)?;
-        Ok(EntryRequest {
+    pub fn new(path: &String, tags: &Vec<String>) -> EntryRequest{
+        EntryRequest {
             path: path.clone(),
             tags: tags.clone()
-        })
+        }
     }
-    
-    fn validate_lookup(lookup: &String) -> Result<(), String> {
-        for comp in lookup.split("/") {
+
+    pub fn validate(&self) -> Result<(), String> {
+        for comp in self.path.split("/") {
             let trimmed = comp.trim();
 
             if comp == "/" || comp == "\\" {

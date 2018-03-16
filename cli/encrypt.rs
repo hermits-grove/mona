@@ -73,7 +73,7 @@ pub fn decrypt<'a>(pass: &[u8], encrypted_data: &[u8], meta: &secret_meta::Meta)
     let nonce = git_db::decode(&meta.aead.nonce)?;
 
     aead::open_in_place(&opening_key, &nonce, &ad, 0, &mut in_out)
-        .map_err(|_| String::from("Failed to open"))
+        .map_err(|_| String::from("Failed to decrypt"))
         .map(|plaintext| plaintext.to_vec())
 }
 
