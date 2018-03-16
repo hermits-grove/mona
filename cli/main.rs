@@ -18,7 +18,7 @@ mod manifest;
 fn mona_dir() -> Result<PathBuf, String> {
     let home = std::env::home_dir()
         .ok_or(String::from("No home directory found"))?;
-    
+
     let mona_dir = home.join(".mona");
 
     if ! mona_dir.exists() {
@@ -117,7 +117,7 @@ fn main() {
                 .arg(clap::Arg::with_name("lookup_path")
                      .required(true)
                      .help("path to of file to cat")));
-    
+
     let matches = app
         .get_matches_from_safe_borrow(std::env::args_os())
         .unwrap_or_else(|e| e.exit());
@@ -131,8 +131,9 @@ fn main() {
             let plaintext_file_arg = sub_m.value_of("plaintext_file").unwrap();
             let lookup_path_arg = sub_m.value_of("lookup_path").unwrap();
             let tag_args = sub_m.values_of("tag").unwrap_or(clap::Values::default());
-            
+
             let file_path = Path::new(plaintext_file_arg);
+            let path = Path::new(plaintext_file_arg);
             let lookup_path = lookup_path_arg.to_string();
             let tags: Vec<String> = tag_args
                 .map(|s| s.to_string())
