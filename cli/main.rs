@@ -12,10 +12,11 @@ use std::io::stdout;
 
 mod git_db;
 mod secret_meta;
-mod encrypt;
+mod crypto;
 mod manifest;
 mod account;
-
+mod encoding;
+mod git_creds;
 
 fn mona_dir() -> Result<PathBuf, String> {
     let home = std::env::home_dir()
@@ -28,7 +29,7 @@ fn mona_dir() -> Result<PathBuf, String> {
             .map_err(|e| format!("Failed to create {:?}: {:?}", mona_dir, e))?;
     }
 
-    if ! mona_dir.is_dir() {
+    if !mona_dir.is_dir() {
         // TAI: does this matter?
         Err(format!("{:?} exists but is not a directory", mona_dir))
     } else {
@@ -37,7 +38,7 @@ fn mona_dir() -> Result<PathBuf, String> {
 }
 
 fn ls(db: &git_db::DB) -> Result<(), String> {
-    let manifest = db.fetch_manifest()?;
+    let manifest = db.manifest()?;
     let db_root = db.root()?;
     for e in manifest.entries.iter() {
         let garbled_path = db_root.join(&e.garbled_path);
@@ -50,7 +51,7 @@ fn ls(db: &git_db::DB) -> Result<(), String> {
 }
 
 fn cat(db: &git_db::DB, lookup_path: &String) -> Result<(), String> {
-    let plaintext = db.fetch(&lookup_path)?.decrypt()?;
+    let plaintext = db.get(&lookup_path)?.decrypt()?;
     let utf8 = String::from_utf8(plaintext.data)
         .map_err(|s| format!("Failed to decode into utf8: {:?}", s))?;
 
@@ -74,7 +75,7 @@ fn put(db: &git_db::DB, file_path: &Path, lookup_path: &String, tags: &Vec<Strin
     let entry_req = manifest::EntryRequest::new(&lookup_path, &tags);
     let meta = secret_meta::Meta::generate_secure_meta(&db)?;
 
-    let encrypted = git_db::Plaintext {
+    let encrypted = crypto::Plaintext {
         data: data,
         meta: meta
     }.encrypt()?;
@@ -90,23 +91,22 @@ fn file_arg(db: &git_db::DB, matches: &clap::ArgMatches) -> Result<(), String> {
             let tag_args = sub_m.values_of("tag").unwrap_or(clap::Values::default());
 
             let file_path = Path::new(plaintext_file_arg);
-            let path = Path::new(plaintext_file_arg);
             let lookup_path = lookup_path_arg.to_string();
             let tags: Vec<String> = tag_args
                 .map(|s| s.to_string())
                 .collect();
 
-            put(&db, &file_path, &format!("file/{}", lookup_path), &tags)
+            put(&db, &file_path, &lookup_path, &tags)
         },
         ("cat", Some(sub_m)) => {
             let lookup_path = sub_m.value_of("lookup_path").unwrap().to_string();
-            cat(&db, &format!("file/{}", lookup_path))
+            cat(&db, &lookup_path)
         },
         ("rm", Some(sub_m)) => {
             let lookup_path = sub_m.value_of("lookup_path").unwrap().to_string();
-            rm(&db, &format!("file/{}", lookup_path))
+            rm(&db, &lookup_path)
         },
-        ("ls", Some(_sub_m)) => {
+        ("ls", Some(_)) => {
             ls(&db)
         },
         _ => {
@@ -125,7 +125,7 @@ fn pass_arg(db: &git_db::DB, matches: &clap::ArgMatches) -> Result<(), String> {
 
             let lookup_path = format!("pass/{}", lookup_path_arg);
             
-            let group = match db.fetch(&lookup_path) {
+            let group = match db.get(&lookup_path) {
                 Ok(encrypted) => encrypted.decrypt()
                     .and_then(|plaintext| account::Group::from_toml_bytes(&plaintext.data))
                     .map_err(|e| format!("Failed to parse file as an account group, this likely means you've written non password manager files to the password manager key space: {}", e)),
@@ -150,7 +150,7 @@ fn pass_arg(db: &git_db::DB, matches: &clap::ArgMatches) -> Result<(), String> {
                 
                 
             let data = new_group.to_toml_bytes()?;
-            let encrypted = git_db::Plaintext {
+            let encrypted = crypto::Plaintext {
                 data: data,
                 meta: secret_meta::Meta::generate_secure_meta(&db)?
             }.encrypt()?;
@@ -165,8 +165,40 @@ fn pass_arg(db: &git_db::DB, matches: &clap::ArgMatches) -> Result<(), String> {
             let lookup_path = sub_m.value_of("lookup_path").unwrap().to_string();
             rm(&db, &lookup_path)
         },
-        ("ls", Some(_sub_m)) => {
+        ("ls", Some(__m)) => {
             ls(&db)
+        },
+        _ => {
+            Err(format!("Unexpected argument"))
+        }
+    }
+}
+
+fn remote_arg(db: &git_db::DB, matches: &clap::ArgMatches) -> Result<(), String> {
+    match matches.subcommand() {
+        ("add", Some(sub_m)) => {
+            let name_arg = sub_m.value_of("name").unwrap();
+            let url_arg = sub_m.value_of("url").unwrap();
+            println!("Enter credentials for this git remote");
+            let username = crypto::read_stdin("username", false)?;
+            let password = crypto::read_stdin("password", true)?;
+            let remote = git_creds::Remote {
+                name: name_arg.to_string(),
+                url: url_arg.to_string(),
+                username: username,
+                password: password
+            };
+            db.add_remote(&remote)
+        },
+        ("remove", Some(sub_m)) => {
+            let name_arg = sub_m.value_of("name").unwrap();
+            db.remove_remote(&name_arg.to_string())
+        },
+        ("ls", Some(_)) => {
+            for remote in db.remotes()?.remotes.iter() {
+                println!("{}\t{} {}", remote.name, remote.username, remote.url);
+            }
+            Ok(())
         },
         _ => {
             Err(format!("Unexpected argument"))
@@ -234,6 +266,33 @@ fn main() {
                         .version("0.0.1")
                         .arg(clap::Arg::with_name("lookup_path")
                              .required(true)
+                             .help("path used for future look ups"))))
+        .subcommand(
+            clap::SubCommand::with_name("remote")
+                .about("Manage Mona's git remotes")
+                .subcommand(
+                    clap::SubCommand::with_name("add")
+                        .version("0.0.1")
+                        .arg(clap::Arg::with_name("name")
+                             .required(true)
+                             .help("Git remote name"))
+                        .arg(clap::Arg::with_name("url")
+                             .required(true)
+                             .help("URL of the git remote")))
+                .subcommand(
+                    clap::SubCommand::with_name("remove")
+                        .version("0.0.1")
+                        .arg(clap::Arg::with_name("name")
+                             .required(true)
+                             .help("Git remote name")))
+                .subcommand(
+                    clap::SubCommand::with_name("ls")
+                        .version("0.0.1"))
+                .subcommand(
+                    clap::SubCommand::with_name("get")
+                        .version("0.0.1")
+                        .arg(clap::Arg::with_name("lookup_path")
+                             .required(true)
                              .help("path used for future look ups"))));
 
     let matches = app
@@ -244,12 +303,17 @@ fn main() {
     let db = git_db::DB::init(&mona_home)
         .expect("Failed to initialize Mona's git database");
 
+    db.sync().expect("Sync failed");
+
     let cmd_res = match matches.subcommand() {
         ("file", Some(sub_m)) => {
             file_arg(&db, sub_m)
         },
         ("pass", Some(sub_m)) => {
             pass_arg(&db, sub_m)
+        },
+        ("remote", Some(sub_m)) => {
+            remote_arg(&db, sub_m)
         },
         _ => {
             app.print_help()

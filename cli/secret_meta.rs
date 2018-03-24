@@ -6,7 +6,8 @@ use std::path::PathBuf;
 use toml;
 
 use git_db;
-use encrypt;
+use crypto;
+use encoding;
 
 #[derive(Serialize, Deserialize, Debug, Clone)]
 pub struct Meta {
@@ -52,11 +53,11 @@ impl Meta {
             pbkdf2: PBKDF2 {
                 algo: String::from("Sha256"),
                 iters: 1_000_000,
-                salt: git_db::encode(&encrypt::generate_rand_bits(96)?)
+                salt: encoding::encode(&crypto::generate_rand_bits(96)?)
             },
             aead: AEAD {
                 algo: String::from("ChaCha20-Poly1305"),
-                nonce: git_db::encode(&encrypt::generate_rand_bits(96)?),
+                nonce: encoding::encode(&crypto::generate_rand_bits(96)?),
                 keylen: 256
             },
             paranoid: Paranoid {
@@ -69,16 +70,16 @@ impl Meta {
     pub fn generate_secure_meta(db: &git_db::DB) -> Result<Meta, String> {
         let default_meta = Meta::default_meta()?;
         
-        let salt = encrypt::generate_rand_bits(96)?;
+        let salt = crypto::generate_rand_bits(96)?;
         let nonce = db.generate_nonce()?;
         
         let meta = Meta {
             pbkdf2: PBKDF2 {
-                salt: git_db::encode(&salt),
+                salt: encoding::encode(&salt),
                 ..default_meta.pbkdf2.clone()
             },
             aead: AEAD {
-                nonce: git_db::encode(&nonce),
+                nonce: encoding::encode(&nonce),
                 ..default_meta.aead.clone()
             },
             ..default_meta.clone()
