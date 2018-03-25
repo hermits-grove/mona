@@ -19,7 +19,7 @@ pub struct DB {
 }
 
 impl DB {
-    pub fn init(path: &Path) -> Result<DB, String> {
+    pub fn init(path: &Path, mut sess: &mut crypto::Session) -> Result<DB, String> {
         let repo = Repository::open(&path)
             .or_else(|_| Repository::init(&path))
             .map_err(|e| format!("Failed to initialize git repo: {:?}", e))?;
@@ -27,11 +27,11 @@ impl DB {
         let db = DB {
             repo: repo,
         };
-        db.ensure_required_files_exist()?;
+        db.ensure_required_files_exist(&mut sess)?;
         Ok(db)
     }
 
-    fn ensure_required_files_exist(&self) -> Result<(), String> {
+    fn ensure_required_files_exist(&self, mut sess: &mut crypto::Session) -> Result<(), String> {
         let root = self.root()?;
         let burnt_nonces = Path::new("burnt_nonces");
         let manifest = Path::new("manifest");
@@ -51,7 +51,7 @@ impl DB {
         
         // ensure we have a manifest        
         if !root.join(&manifest).is_file() {
-            self.write_manifest(&manifest::Manifest::empty())?;
+            self.write_manifest(&manifest::Manifest::empty(), &mut sess)?;
             self.stage_file(&manifest)?;
             self.stage_file(&manifest.with_extension("toml"))?;
             self.stage_file(&burnt_nonces)?;
@@ -59,7 +59,7 @@ impl DB {
         }
 
         if !root.join(&remotes).is_file() {
-            self.write_remotes(&git_creds::Remotes::empty())?;
+            self.write_remotes(&git_creds::Remotes::empty(), &mut sess)?;
             self.stage_file(&remotes)?;
             self.stage_file(&remotes.with_extension("toml"))?;
             self.stage_file(&burnt_nonces)?;
@@ -89,21 +89,21 @@ impl DB {
         Ok(nonce)
     }
 
-    fn put_entry(&self, entry: manifest::Entry, data: &crypto::Encrypted) -> Result<(), String> {
+    fn put_entry(&self, entry: manifest::Entry, data: &crypto::Encrypted, mut sess: &mut crypto::Session) -> Result<(), String> {
         let root = self.root()?;
         let entry_path = root.join(&entry.garbled_path);
 
         data.write(&entry_path)?;
 
-        let manifest_old = self.manifest()?;
+        let manifest_old = self.manifest(&mut sess)?;
         for e in manifest_old.entries.iter() {
             if e.path == entry.path {
-                self.rm(&entry.path)?; // TODO: use proper error messages so that we don't have to loop over manifest twice here
+                self.rm(&entry.path, &mut sess)?; // TODO: use proper error messages so that we don't have to loop over manifest twice here
                 break;
             }
         }
 
-        let manifest = self.manifest()?;
+        let manifest = self.manifest(&mut sess)?;
         let mut updated_entries: Vec<manifest::Entry> = manifest.entries.clone();
         updated_entries.push(entry);
         
@@ -112,10 +112,10 @@ impl DB {
             ..manifest
         };
 
-        self.write_manifest(&updated_manifest)
+        self.write_manifest(&updated_manifest, &mut sess)
     }
 
-    pub fn put(&self, entry_req: &manifest::EntryRequest, data: &crypto::Encrypted) -> Result<(), String> {
+    pub fn put(&self, entry_req: &manifest::EntryRequest, data: &crypto::Encrypted, mut sess: &mut crypto::Session) -> Result<(), String> {
         entry_req.validate()?;
         
         let root = self.root()?;
@@ -131,23 +131,24 @@ impl DB {
             garbled_path: garbled
         };
 
-        self.put_entry(entry, &data)?;
+        self.put_entry(entry, &data, &mut sess)?;
         Ok(())     
     }
 
-    pub fn get(&self, path: &String) -> Result<crypto::Encrypted, String> {
+    pub fn get(&self, path: &String, mut sess: &mut crypto::Session) -> Result<crypto::Encrypted, String> {
         let root = self.root()?;
-        let manifest = self.manifest()?;
+        let manifest = self.manifest(&mut sess)?;
         for e in manifest.entries.iter() {
             if &e.path == path {
                 return crypto::Encrypted::read(&root.join(&e.garbled_path));
             }
         }
+        // TODO: we are using Err to represent a get for a non-existing entity, we should have different result type which would tell you if there is no element and distinguish from regular errors
         Err(format!("No entry with given path: {}", path))
     }
 
-    pub fn rm(&self, path: &String) -> Result<(), String> {
-        let manifest = self.manifest()?;
+    pub fn rm(&self, path: &String, mut sess: &mut crypto::Session) -> Result<(), String> {
+        let manifest = self.manifest(&mut sess)?;
         let matching_entries: Vec<&manifest::Entry> = manifest.entries.iter().filter(|e| &e.path == path).collect();
         if matching_entries.len() == 0 {
             return Err(format!("No entry with given path: {}", path));
@@ -172,11 +173,11 @@ impl DB {
             entries: updated_entries,
             ..manifest
         };
-        self.write_manifest(&updated_manifest)
+        self.write_manifest(&updated_manifest, &mut sess)
     }
 
-    pub fn add_remote(&self, remote: &git_creds::Remote) -> Result<(), String> {
-        let remotes = self.remotes()?;
+    pub fn add_remote(&self, remote: &git_creds::Remote, mut sess: &mut crypto::Session) -> Result<(), String> {
+        let remotes = self.remotes(&mut sess)?;
         let mut updated_remotes = remotes.remotes.clone();
         updated_remotes.push(remote.clone());
 
@@ -185,20 +186,35 @@ impl DB {
             ..remotes
         };
 
-        self.write_remotes(&updated_remotes)?;
+        self.write_remotes(&updated_remotes, &mut sess)?;
         self.repo.remote(&remote.name, &remote.url)
             .map(|_| ()) // return Ok(())
             .map_err(|e| format!("Failed to add remote: {:?}", e))
     }
 
-    pub fn remove_remote(&self, name: &String) -> Result<(), String> {
+    pub fn remove_remote(&self, name: &String, mut sess: &mut crypto::Session) -> Result<(), String> {
+        let remotes = self.remotes(&mut sess)?;
+        let mut updated_remotes: Vec<_> = remotes
+            .remotes
+            .iter()
+            .filter(|r| &r.name != name)
+            .map(|r| r.clone())
+            .collect();
+
+        let updated_remotes = git_creds::Remotes {
+            remotes: updated_remotes,
+            ..remotes
+        };
+
+        self.write_remotes(&updated_remotes, &mut sess);
+        
         self.repo.remote_delete(&name)
             .map_err(|e| format!("Failed to remove remote: {:?}", e))
     }
 
-    pub fn remotes(&self) -> Result<git_creds::Remotes, String> {
+    pub fn remotes(&self, mut sess: &mut crypto::Session) -> Result<git_creds::Remotes, String> {
         let path = self.root()?.join("remotes");
-        let remotes_toml_bytes = crypto::Encrypted::read(&path)?.decrypt()?.data;
+        let remotes_toml_bytes = crypto::Encrypted::read(&path)?.decrypt(&mut sess)?.data;
         git_creds::Remotes::from_toml_bytes(&remotes_toml_bytes)
     }
 
@@ -305,8 +321,8 @@ impl DB {
         Ok(())
     }
 
-    pub fn sync(&self) -> Result<(), String> {
-        for remote in self.remotes()?.remotes.iter() {
+    pub fn sync(&self, mut sess: &mut crypto::Session) -> Result<(), String> {
+        for remote in self.remotes(&mut sess)?.remotes.iter() {
             self.pull_remote(&remote)?;
         }
 
@@ -337,7 +353,7 @@ impl DB {
 
         // now need to push to all remotes
         
-        for remote in self.remotes()?.remotes.iter() {
+        for remote in self.remotes(&mut sess)?.remotes.iter() {
             println!("Pushing to remote {} {}", remote.name, remote.url);
             let mut git_remote = self.repo.find_remote(&remote.name)
                 .map_err(|e| format!("Failed to find remote with name {}: {:?}", remote.name, e))?;
@@ -366,32 +382,31 @@ impl DB {
         self.repo.workdir().ok_or("Repo is bare, no working directory".to_string())
     }
 
-    pub fn manifest(&self) -> Result<manifest::Manifest, String> {
+    pub fn manifest(&self, mut sess: &mut crypto::Session) -> Result<manifest::Manifest, String> {
         let root = self.root()?;
         let path = root.join("manifest");
-        let manifest_toml_bytes = crypto::Encrypted::read(&path)?.decrypt()
-            .map_err(|s| format!("Failed to decrypt manifest {:?}: {}", path, s))
-            ?.data;
+        let manifest_plaintext = crypto::Encrypted::read(&path)?.decrypt(&mut sess)
+            .map_err(|s| format!("Failed to decrypt manifest {:?}: {}", path, s))?;
 
-        manifest::Manifest::from_toml_bytes(&manifest_toml_bytes)
+        manifest::Manifest::from_toml_bytes(&manifest_plaintext.data)
     }
     
     // PRIVATE METHODS ====================
 
-    fn write_remotes(&self, remotes: &git_creds::Remotes) -> Result<(), String>{
+    fn write_remotes(&self, remotes: &git_creds::Remotes, mut sess: &mut crypto::Session) -> Result<(), String>{
         let root = self.root()?;
         crypto::Plaintext {
             data: remotes.to_toml_bytes()?,
             meta: secret_meta::Meta::generate_secure_meta(&self)?
-        }.encrypt()?.write(&root.join("remotes"))
+        }.encrypt(&mut sess)?.write(&root.join("remotes"))
     }
 
-    fn write_manifest(&self, manifest: &manifest::Manifest) -> Result<(), String>{
+    fn write_manifest(&self, manifest: &manifest::Manifest, mut sess: &mut crypto::Session) -> Result<(), String>{
         let root = self.root()?;
         crypto::Plaintext {
             data: manifest.to_toml_bytes()?,
             meta: secret_meta::Meta::generate_secure_meta(&self)?
-        }.encrypt()?.write(&root.join("manifest"))
+        }.encrypt(&mut sess)?.write(&root.join("manifest"))
     }
 
     fn burnt_nonces_path(&self) -> Result<PathBuf, String> {

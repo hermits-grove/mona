@@ -101,9 +101,13 @@ impl Meta {
             })
     }
 
-    pub fn write_toml(&self, path: &PathBuf) -> Result<(), String> {
+    pub fn to_toml_bytes(&self) -> Result<Vec<u8>, String> {
         toml::to_vec(&self)
             .map_err(|e| format!("Failed to serialize meta {:?}", e))
+    }
+
+    pub fn write_toml(&self, path: &PathBuf) -> Result<(), String> {
+        self.to_toml_bytes()
             .and_then(|serialized_meta| {
                 File::create(&path)
                     .map_err(|e| format!("Failed to create {:?}: {:?}", path, e))

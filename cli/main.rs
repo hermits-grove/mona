@@ -37,8 +37,8 @@ fn mona_dir() -> Result<PathBuf, String> {
     }
 }
 
-fn ls(db: &git_db::DB) -> Result<(), String> {
-    let manifest = db.manifest()?;
+fn ls(db: &git_db::DB, mut sess: &mut crypto::Session) -> Result<(), String> {
+    let manifest = db.manifest(&mut sess)?;
     let db_root = db.root()?;
     for e in manifest.entries.iter() {
         let garbled_path = db_root.join(&e.garbled_path);
@@ -50,8 +50,8 @@ fn ls(db: &git_db::DB) -> Result<(), String> {
     Ok(())
 }
 
-fn cat(db: &git_db::DB, lookup_path: &String) -> Result<(), String> {
-    let plaintext = db.get(&lookup_path)?.decrypt()?;
+fn cat(db: &git_db::DB, lookup: &String, mut sess: &mut crypto::Session) -> Result<(), String> {
+    let plaintext = db.get(&lookup, &mut sess)?.decrypt(&mut sess)?;
     let utf8 = String::from_utf8(plaintext.data)
         .map_err(|s| format!("Failed to decode into utf8: {:?}", s))?;
 
@@ -60,11 +60,11 @@ fn cat(db: &git_db::DB, lookup_path: &String) -> Result<(), String> {
         .map_err(|s| format!("Failed to flush stdout: {:?}", s))
 }
 
-fn rm(db: &git_db::DB, lookup_path: &String) -> Result<(), String> {
-    db.rm(&lookup_path)
+fn rm(db: &git_db::DB, lookup: &String, mut sess: &mut crypto::Session) -> Result<(), String> {
+    db.rm(&lookup, &mut sess)
 }
 
-fn put(db: &git_db::DB, file_path: &Path, lookup_path: &String, tags: &Vec<String>) -> Result<(), String> {
+fn put(db: &git_db::DB, file_path: &Path, lookup: &String, tags: &Vec<String>, mut sess: &mut crypto::Session) -> Result<(), String> {
     let mut f = File::open(file_path)
         .map_err(|s| format!("Failed to open input file: {}", s))?;
     
@@ -72,18 +72,17 @@ fn put(db: &git_db::DB, file_path: &Path, lookup_path: &String, tags: &Vec<Strin
     f.read_to_end(&mut data)
         .map_err(|s| format!("Failed to read input file: {:?}", s))?;
 
-    let entry_req = manifest::EntryRequest::new(&lookup_path, &tags);
-    let meta = secret_meta::Meta::generate_secure_meta(&db)?;
 
     let encrypted = crypto::Plaintext {
         data: data,
-        meta: meta
-    }.encrypt()?;
+        meta: secret_meta::Meta::generate_secure_meta(&db)?
+    }.encrypt(&mut sess)?;
 
-    db.put(&entry_req, &encrypted)
+    let entry_req = manifest::EntryRequest::new(&lookup, &tags);
+    db.put(&entry_req, &encrypted, &mut sess)
 }
 
-fn file_arg(db: &git_db::DB, matches: &clap::ArgMatches) -> Result<(), String> {
+fn file_arg(db: &git_db::DB, matches: &clap::ArgMatches, mut sess: &mut crypto::Session) -> Result<(), String> {
     match matches.subcommand() {
         ("put", Some(sub_m)) => {
             let plaintext_file_arg = sub_m.value_of("plaintext_file").unwrap();
@@ -96,18 +95,18 @@ fn file_arg(db: &git_db::DB, matches: &clap::ArgMatches) -> Result<(), String> {
                 .map(|s| s.to_string())
                 .collect();
 
-            put(&db, &file_path, &lookup_path, &tags)
+            put(&db, &file_path, &lookup_path, &tags, &mut sess)
         },
         ("cat", Some(sub_m)) => {
             let lookup_path = sub_m.value_of("lookup_path").unwrap().to_string();
-            cat(&db, &lookup_path)
+            cat(&db, &lookup_path, &mut sess)
         },
         ("rm", Some(sub_m)) => {
             let lookup_path = sub_m.value_of("lookup_path").unwrap().to_string();
-            rm(&db, &lookup_path)
+            rm(&db, &lookup_path, &mut sess)
         },
         ("ls", Some(_)) => {
-            ls(&db)
+            ls(&db, &mut sess)
         },
         _ => {
             Err(format!("Unexpected argument"))
@@ -115,18 +114,17 @@ fn file_arg(db: &git_db::DB, matches: &clap::ArgMatches) -> Result<(), String> {
     }
 }
 
-fn pass_arg(db: &git_db::DB, matches: &clap::ArgMatches) -> Result<(), String> {
+fn pass_arg(db: &git_db::DB, matches: &clap::ArgMatches, mut sess: &mut crypto::Session) -> Result<(), String> {
     match matches.subcommand() {
         ("new", Some(sub_m)) => {
             let lookup_path_arg = sub_m.value_of("lookup_path").unwrap();
             let pass_arg = sub_m.value_of("password").unwrap();
             let username_arg = sub_m.value_of("username").unwrap();
 
-
             let lookup_path = format!("pass/{}", lookup_path_arg);
             
-            let group = match db.get(&lookup_path) {
-                Ok(encrypted) => encrypted.decrypt()
+            let group = match db.get(&lookup_path, &mut sess) {
+                Ok(encrypted) => encrypted.decrypt(&mut sess)
                     .and_then(|plaintext| account::Group::from_toml_bytes(&plaintext.data))
                     .map_err(|e| format!("Failed to parse file as an account group, this likely means you've written non password manager files to the password manager key space: {}", e)),
                 Err(_) => Ok(account::Group::empty()) // no entry with path exists, create new account group
@@ -139,34 +137,31 @@ fn pass_arg(db: &git_db::DB, matches: &clap::ArgMatches) -> Result<(), String> {
 
             let mut accounts = group.accounts.clone();
             accounts.push(account);
-            
+
             let new_group = account::Group {
                 accounts: accounts,
                 ..group
             };
-            
+
             let req = manifest::EntryRequest::new(&lookup_path, &Vec::new());
-            
-                
-                
-            let data = new_group.to_toml_bytes()?;
+
             let encrypted = crypto::Plaintext {
-                data: data,
+                data: new_group.to_toml_bytes()?,
                 meta: secret_meta::Meta::generate_secure_meta(&db)?
-            }.encrypt()?;
+            }.encrypt(&mut sess)?;
             
-            db.put(&req, &encrypted)
+            db.put(&req, &encrypted, &mut sess)
         },
         ("get", Some(sub_m)) => {
             let lookup_path = sub_m.value_of("lookup_path").unwrap().to_string();
-            cat(&db, &format!("pass/{}", lookup_path))
+            cat(&db, &format!("pass/{}", lookup_path), &mut sess)
         },
         ("rm", Some(sub_m)) => {
             let lookup_path = sub_m.value_of("lookup_path").unwrap().to_string();
-            rm(&db, &lookup_path)
+            rm(&db, &lookup_path, &mut sess)
         },
         ("ls", Some(__m)) => {
-            ls(&db)
+            ls(&db, &mut sess)
         },
         _ => {
             Err(format!("Unexpected argument"))
@@ -174,7 +169,7 @@ fn pass_arg(db: &git_db::DB, matches: &clap::ArgMatches) -> Result<(), String> {
     }
 }
 
-fn remote_arg(db: &git_db::DB, matches: &clap::ArgMatches) -> Result<(), String> {
+fn remote_arg(db: &git_db::DB, matches: &clap::ArgMatches, mut sess: &mut crypto::Session) -> Result<(), String> {
     match matches.subcommand() {
         ("add", Some(sub_m)) => {
             let name_arg = sub_m.value_of("name").unwrap();
@@ -188,14 +183,14 @@ fn remote_arg(db: &git_db::DB, matches: &clap::ArgMatches) -> Result<(), String>
                 username: username,
                 password: password
             };
-            db.add_remote(&remote)
+            db.add_remote(&remote, &mut sess)
         },
         ("remove", Some(sub_m)) => {
             let name_arg = sub_m.value_of("name").unwrap();
-            db.remove_remote(&name_arg.to_string())
+            db.remove_remote(&name_arg.to_string(), &mut sess)
         },
         ("ls", Some(_)) => {
-            for remote in db.remotes()?.remotes.iter() {
+            for remote in db.remotes(&mut sess)?.remotes.iter() {
                 println!("{}\t{} {}", remote.name, remote.username, remote.url);
             }
             Ok(())
@@ -300,20 +295,25 @@ fn main() {
         .unwrap_or_else(|e| e.exit());
 
     let mona_home = mona_dir().expect("Unable to find Mona's root dir");
-    let db = git_db::DB::init(&mona_home)
+
+    let mut sess = crypto::Session::new();
+    
+    let db = git_db::DB::init(&mona_home, &mut sess)
         .expect("Failed to initialize Mona's git database");
 
-    db.sync().expect("Sync failed");
+    if let Err(e) = db.sync(&mut sess) {
+        println!("Failed sync:\ncause - \t{}", e);
+    }
 
     let cmd_res = match matches.subcommand() {
         ("file", Some(sub_m)) => {
-            file_arg(&db, sub_m)
+            file_arg(&db, sub_m, &mut sess)
         },
         ("pass", Some(sub_m)) => {
-            pass_arg(&db, sub_m)
+            pass_arg(&db, sub_m, &mut sess)
         },
         ("remote", Some(sub_m)) => {
-            remote_arg(&db, sub_m)
+            remote_arg(&db, sub_m, &mut sess)
         },
         _ => {
             app.print_help()

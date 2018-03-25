@@ -1,18 +1,16 @@
 use std::path::Path;
-use std::io;
 use std::fs::File;
-use std::io::Read;
-use std::io::Write;
-use std::io::stdout;
+use std::io::{stdin, Read, Write, stdout};
 
-use ring;
 use ring::{aead, digest, pbkdf2};
-use ring::rand::SecureRandom;
-use toml;
-
+use ring::rand::{SecureRandom, SystemRandom};
 
 use secret_meta::Meta;
 use encoding;
+
+pub struct Session {
+    password: Option<String>
+}
 
 pub struct Plaintext {
     pub data: Vec<u8>,
@@ -24,13 +22,29 @@ pub struct Encrypted {
     meta: Meta
 }
 
+impl Session {
+    pub fn new() -> Session {
+        Session {
+            password: None
+        }
+    }
+
+    pub fn pass(&mut self) -> Result<String, String> {
+        if let Some(pass) = self.password.clone() {
+            Ok(pass)
+        } else {
+            let pass = read_stdin("master passphrase", true)?;
+            self.password = Some(pass.clone());
+            Ok(pass)
+        }
+    }
+}
+
 impl Plaintext {
-    pub fn encrypt(&self) -> Result<Encrypted, String> {
-        let pass = read_stdin("master passphrase", true)?;
-        
-        let ciphertext = encrypt(&pass.as_bytes(), &self.data, &self.meta)?;
+    pub fn encrypt(&self, sess: &mut Session) -> Result<Encrypted, String> {
+        let pass = sess.pass()?;
         let encrypted = Encrypted {
-            data: ciphertext,
+            data: encrypt(&pass.as_bytes(), &self.data, &self.meta)?,
             meta: self.meta.clone()
         };
         Ok(encrypted)
@@ -68,13 +82,10 @@ impl Encrypted {
             })
     }
 
-    pub fn decrypt(&self) -> Result<Plaintext, String> {
-        let pass = read_stdin("master passphrase", true)?;
-
-        let data = decrypt(&pass.as_bytes(), &self.data, &self.meta)?;
-        
+    pub fn decrypt(&self, sess: &mut Session) -> Result<Plaintext, String> {
+        let pass = sess.pass()?;
         let plaintext = Plaintext {
-            data: data,
+            data: decrypt(&pass.as_bytes(), &self.data, &self.meta)?,
             meta: self.meta.clone()
         };
         Ok(plaintext)
@@ -100,28 +111,25 @@ pub fn pbkdf2(pass: &[u8], keylen: u32, meta: &Meta) -> Result<Vec<u8>, String> 
 }
 
 pub fn encrypt<'a>(pass: &[u8], data: &[u8], meta: &Meta) -> Result<Vec<u8>, String> {
-    if meta.aead.algo != "ChaCha20-Poly1305" {
-        panic!("only 'ChaCha20-Poly1305' implemented for aead");
-    }
-
-    let aead_algo = &aead::CHACHA20_POLY1305;
+    let aead_algo = match meta.aead.algo.as_str() {
+        "ChaCha20-Poly1305" => &aead::CHACHA20_POLY1305,
+        _ => panic!("AEAD supports only 'ChaCha20-Poly1305'")
+    };
 
     let key = pbkdf2(pass, meta.aead.keylen, &meta)?;
-    let seal_key = aead::SealingKey::new(aead_algo, &key).unwrap();
-
+    let seal_key = aead::SealingKey::new(aead_algo, &key)
+        .map_err(|e| format!("Failed to create sealing key: {:?}", e))?;
+    
     let mut in_out = Vec::with_capacity(data.len() + seal_key.algorithm().tag_len());
     in_out.extend(data.iter());
     in_out.extend(vec![0u8; seal_key.algorithm().tag_len()]);
-    let ad: &[u8] = &toml::to_vec(&meta).unwrap();
+    let ad: &[u8] = &meta.to_toml_bytes()?;
     let nonce = encoding::decode(&meta.aead.nonce)?;
 
-    aead::seal_in_place(&seal_key,
-                        &nonce,
-                        &ad,
-                        &mut in_out,
-                        seal_key.algorithm().tag_len())
-        .map_err(|_| String::from("Failed to seal"))
-        .map(|_| in_out)
+    aead::seal_in_place(&seal_key, &nonce, &ad, &mut in_out, seal_key.algorithm().tag_len())
+        .map_err(|e| format!("Failed to seal: {:?}", e))?;
+
+    Ok(in_out)
 }
 
 pub fn decrypt<'a>(pass: &[u8], encrypted_data: &[u8], meta: &Meta) -> Result<Vec<u8>, String> {
@@ -137,7 +145,7 @@ pub fn decrypt<'a>(pass: &[u8], encrypted_data: &[u8], meta: &Meta) -> Result<Ve
     let mut in_out = Vec::new();
     in_out.extend(encrypted_data.iter());
 
-    let ad: &[u8] = &toml::to_vec(&meta).unwrap();
+    let ad: &[u8] = &meta.to_toml_bytes()?;
     let nonce = encoding::decode(&meta.aead.nonce)?;
 
     aead::open_in_place(&opening_key, &nonce, &ad, 0, &mut in_out)
@@ -152,7 +160,7 @@ pub fn read_stdin(prompt: &str, obscure_input: bool) -> Result<String, String> {
     print!("{}: ", prompt);
     stdout().flush().ok();
     let mut pass = String::new();
-    io::stdin().read_line(&mut pass)
+    stdin().read_line(&mut pass)
         .map_err(|e| format!("Error reading password from stdin: {}", e))
         .map(|_| pass.trim().to_string())
 }
@@ -163,7 +171,7 @@ pub fn generate_rand_bits(n: u32) -> Result<Vec<u8>, String> {
     }
 
     let mut buff = vec![0u8; (n / 8) as usize ];
-    let rng = ring::rand::SystemRandom::new();
+    let rng = SystemRandom::new();
     rng.fill(&mut buff)
         .map_err(|e| format!("Failed to generate random bits: {:?}", e))?;
     Ok(buff)
