@@ -31,7 +31,9 @@ The plan: use public key cryptography to store the key file encrypted for each d
    ii. write the public key to `$MONA_HOME/devices/<device_name>.pub`
 
    iii. If the devices directory is empty, (ie. there are no devices registered), generate an N bit key_file, store it outside of the mona repository
+
    iv. If the devices directory is not empty, push the change to the git remotes and periodically pull, we should expect one of the devices to notice the new `<device_name>.pub` file and encrypt the key file for us.
+   
    v. Once we see the expected `<device_name>_key_file` file, decrypt it using the devices private key and store it outside of the mona repository.
 
 
