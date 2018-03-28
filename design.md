@@ -24,18 +24,21 @@ Every device must have the same secret key on each device, we need to make this 
 
 The plan: use public key cryptography to store the key file encrypted for each device in the mona git repository
 
-On device initialization, Mona generates a key pair for this device.
-private key is stored outside of the Mona repository
-write the public key to `$MONA_HOME/devices/<device_name>.pub`
-If the devices directory is empty, (ie. there are no devices registered), generate an N bit key_file, store it outside of the mona repository
+1. On device initialization, Mona generates a key pair for this device.
+
+   i. private key is stored outside of the Mona repository
+
+   ii. write the public key to `$MONA_HOME/devices/<device_name>.pub`
+
+   iii. If the devices directory is empty, (ie. there are no devices registered), generate an N bit key_file, store it outside of the mona repository
+   iv. If the devices directory is not empty, push the change to the git remotes and periodically pull, we should expect one of the devices to notice the new `<device_name>.pub` file and encrypt the key file for us.
+   v. Once we see the expected `<device_name>_key_file` file, decrypt it using the devices private key and store it outside of the mona repository.
+
 
 On every sync:
 1. scan the `$MONA_HOME/devices` directory for `devices/<device_name>.pub` files which do not have an accompanying `devices/<device_name>_key_file` file.
 2. if such a file is found notify the user and ask for permission to encrypt the key for this device
 3. If we have permission, encrypt the key file stored on this device with the `devices/<device_name>.pub` public key using public key cryptography and store it in `devices/<device_name>_key_file`.
-
-If the devices directory is not empty, push the change to the git remotes and periodically pull, we should expect one of the devices to notice the new `<device_name>.pub` file and encrypt the key file for us.
-Once we see the expected `<device_name>_key_file` file, decrypt it using the devices private key and store it outside of the mona repository.
 
 
 ## TAI
