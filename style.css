@@ -1,0 +1,41 @@
+html {
+    font-family: 'PT Serif', serif;
+}
+
+body {
+    margin: 0px;
+}
+
+.header {
+    color: white;
+    text-align: left;
+    border-top: 5px solid #ffcc00ff;
+    padding-left: 25px;
+    background: url("https://uploads2.wikiart.org/images/mikalojus-ciurlionis/castle-castle-fairy-tale-1909.jpg") no-repeat;
+    background-size: 100%;
+    height: 100px;
+}
+
+.logo {
+    margin-top: 8px;
+    position: relative;
+    font-size: 54pt;
+    line-height: 100%;
+}
+
+.tagline {
+    font-style: italic;
+    font-size: 12pt;
+    padding: 10px;
+    padding-left: 25px;
+}
+
+.description {
+    font-size: 12pt;
+    padding-left: 25px;
+    width: 350px;
+}
+
+.intermission {
+    text-align: center;
+}
