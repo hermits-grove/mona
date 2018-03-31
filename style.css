@@ -32,7 +32,7 @@ body {
 
 .description {
     font-size: 12pt;
-    padding-left: 25px;
+    padding: 25px 0px;
     max-width: 350px;
 }
 
