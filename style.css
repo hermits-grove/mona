@@ -33,7 +33,7 @@ body {
 .description {
     font-size: 12pt;
     padding-left: 25px;
-    width: 350px;
+    min-width: 350px;
 }
 
 .intermission {
