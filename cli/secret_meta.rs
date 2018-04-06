@@ -20,7 +20,7 @@ pub struct Meta {
 
 #[derive(Serialize, Deserialize, Debug, Clone)]
 pub struct Plaintext {
-    pub min_bits: i32
+    pub min_bits: u32
 }
 
 #[derive(Serialize, Deserialize, Debug, Clone)]

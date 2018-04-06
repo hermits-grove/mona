@@ -194,7 +194,7 @@ impl DB {
 
     pub fn remove_remote(&self, name: &String, mut sess: &mut crypto::Session) -> Result<(), String> {
         let remotes = self.remotes(&mut sess)?;
-        let mut updated_remotes: Vec<_> = remotes
+        let updated_remotes: Vec<_> = remotes
             .remotes
             .iter()
             .filter(|r| &r.name != name)
@@ -206,7 +206,7 @@ impl DB {
             ..remotes
         };
 
-        self.write_remotes(&updated_remotes, &mut sess);
+        self.write_remotes(&updated_remotes, &mut sess)?;
         
         self.repo.remote_delete(&name)
             .map_err(|e| format!("Failed to remove remote: {:?}", e))
@@ -275,49 +275,68 @@ impl DB {
         git_remote.fetch(&["master"], Some(&mut fetch_opt), None)
             .map_err(|e| format!("Failed to fetch remote {}: {:?}", remote.name, e))?;
 
-        let remote_tracking_branch = format!("{}", "master");
-        let branch_res = self.repo.find_branch(&remote_tracking_branch, git2::BranchType::Remote);
+        let branch_res = self.repo.find_branch("master", git2::BranchType::Remote);
+
         if branch_res.is_err() {
             return Ok(()); // remote does not have a tracking branch, this happens on initialization (client has not pushed yet)
-        } else if let Ok(branch) = branch_res {
-            let remote_branch_oid = branch.get() // branch reference
-                .resolve() // direct reference
-                .map_err(|e| format!("Failed to resolve remote branch {} OID: {:?}", remote.name, e))
-                ?.target() // OID
-                .ok_or(format!("Failed to fetch remote oid: remote {}", remote.name))?;
-
-            let remote_commit = self.repo
-                .find_annotated_commit(remote_branch_oid)
-                .map_err(|e| format!("Failed to find an annotated commit for remote banch {}: {:?}", remote.name, e))?;
-
-            self.repo.merge(&[&remote_commit], None, None)
-                .map_err(|e| format!("Failed merge from remote {}: {:?}", remote.name, e))?;
-            
-            let mut index = self.repo.index()
-                .map_err(|e| format!("Failed to read index: {:?}", e))?;
-
-            if index.has_conflicts() {
-                panic!("I don't know how to handle conflicts yet!!!!!!!!!!!!!");
-            }
-
-            let stats = self.repo.diff_index_to_workdir(None, None)
-                .map_err(|e| format!("Failed diff index: {:?}", e))?.stats()
-                .map_err(|e| format!("Failed to get diff stats: {:?}", e))?;
-
-            if stats.files_changed() > 0 {
-                println!("{} files changed (+{}, -{})",
-                         stats.files_changed(),
-                         stats.insertions(),
-                         stats.deletions()
-                );
-                // TAI: should return stats struct
-                let remote_commit = self.repo.find_commit(remote_branch_oid)
-                    .map_err(|e| format!("Failed to find remote's commit: {:?}", e))?;
-
-                let msg = format!("Mona Sync from {}: {}", remote.name, time::now().asctime());
-                self.commit(&msg, &vec![&remote_commit])?;
-            }
         }
+        
+        let remote_branch_oid = branch_res.unwrap().get() // branch reference
+            .resolve() // direct reference
+            .map_err(|e| format!("Failed to resolve remote branch {} OID: {:?}", remote.name, e))
+            ?.target() // OID of latest commit on remote branch
+            .ok_or(format!("Failed to fetch remote oid: remote {}", remote.name))?;
+
+        let remote_commit = self.repo
+            .find_annotated_commit(remote_branch_oid)
+            .map_err(|e| format!("Failed to find commit for remote banch {}: {:?}", remote.name, e))?;
+
+        self.repo.merge(&[&remote_commit], None, None)
+            .map_err(|e| format!("Failed merge from remote {}: {:?}", remote.name, e))?;
+        
+        let index = self.repo.index()
+            .map_err(|e| format!("Failed to read index: {:?}", e))?;
+
+        if index.has_conflicts() {
+            panic!("I don't know how to handle conflicts yet!!!!!!!!!!!!!");
+        }
+
+        let stats = self.repo.diff_index_to_workdir(None, None)
+            .map_err(|e| format!("Failed diff index: {:?}", e))?.stats()
+            .map_err(|e| format!("Failed to get diff stats: {:?}", e))?;
+
+        if stats.files_changed() > 0 {
+            println!("{} files changed (+{}, -{})",
+                     stats.files_changed(),
+                     stats.insertions(),
+                     stats.deletions());
+
+            let remote_commit = self.repo.find_commit(remote_branch_oid)
+                .map_err(|e| format!("Failed to find remote commit: {:?}", e))?;
+
+            let msg = format!("Mona Sync from {}: {}",
+                              remote.name,
+                              time::now().asctime());
+
+            self.commit(&msg, &vec![&remote_commit])?;
+            self.push_remote(&remote)?;
+        }
+        
+        // TAI: should return stats struct
+        Ok(())
+    }
+
+    pub fn push_remote(&self, remote: &git_creds::Remote) -> Result<(), String> {
+        println!("Pushing to remote {} {}", remote.name, remote.url);
+        let mut git_remote = self.repo.find_remote(&remote.name)
+            .map_err(|e| format!("Failed to find remote with name {}: {:?}", remote.name, e))?;
+
+        let mut fetch_opt = git2::PushOptions::new();
+        fetch_opt.remote_callbacks(remote.git_callbacks());
+
+        git_remote.push(&[&"refs/heads/master:refs/heads/master"], Some(&mut fetch_opt))
+            .map_err(|e| format!("Failed to push remote {}: {:?}", remote.name, e))?;
+        println!("Finish push");
         Ok(())
     }
 
@@ -327,22 +346,17 @@ impl DB {
         }
 
         let mut index = self.repo.index()
-            .map_err(|e| format!("Failed to fetch an index: {:?}", e))?;
+            .map_err(|e| format!("Failed to fetch index: {:?}", e))?;
 
-        let mut files_changed = 0;
-        {
-            let print_files_added = &mut |path: &Path, _: &[u8]| -> i32 {
-                println!("add '{}'", path.display());
-                files_changed += 1;
-                0
-            };
-            index.add_all(["*"].iter(), git2::ADD_DEFAULT, Some(print_files_added as &mut git2::IndexMatchedPath))
+        let stats = self.repo.diff_index_to_workdir(None, None)
+            .map_err(|e| format!("Failed diff index: {:?}", e))?.stats()
+            .map_err(|e| format!("Failed to get diff stats: {:?}", e))?;
+
+        println!("files changed: {}", stats.files_changed());
+
+        if stats.files_changed() > 0 {
+            index.add_all(["*"].iter(), git2::ADD_DEFAULT, None)
                 .map_err(|e| format!("Failed to add files to index: {:?}", e))?;
-        }
-
-        println!("files changed: {}", files_changed);
-        
-        if files_changed > 0 {
             let timestamp_commit_msg = format!("Mona: {}", time::now().asctime());
             self.commit(&timestamp_commit_msg, &Vec::new())?;
         }
@@ -352,28 +366,8 @@ impl DB {
             .map_err(|e| format!("Failed to checkout head: {:?}", e))?;
 
         // now need to push to all remotes
-        
         for remote in self.remotes(&mut sess)?.remotes.iter() {
-            println!("Pushing to remote {} {}", remote.name, remote.url);
-            let mut git_remote = self.repo.find_remote(&remote.name)
-                .map_err(|e| format!("Failed to find remote with name {}: {:?}", remote.name, e))?;
-            {
-                println!("setting up connect auth");
-                git_remote.connect_auth(git2::Direction::Push, Some(remote.git_callbacks()), None)
-                    .map_err(|e| format!("Failed to setup connect auth: {:?}", e))?;
-
-                println!("finished connect auth, setting up fetch opt");
-                let mut fetch_opt = git2::PushOptions::new();
-                fetch_opt.remote_callbacks(remote.git_callbacks());
-
-                println!("finished settinup up fetch opt, running remote push");
-
-                let refspec = "refs/heads/master:refs/heads/master";
-
-                git_remote.push(&[&refspec], Some(&mut fetch_opt))
-                    .map_err(|e| format!("Failed to push remote {}: {:?}", remote.name, e))?;
-                println!("Finish push");
-            }
+            self.push_remote(&remote)?;
         }
         Ok(())
     }
