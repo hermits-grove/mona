@@ -2,7 +2,8 @@
 extern crate serde_derive;
 extern crate toml;
 extern crate clap;
-extern crate ring;
+
+extern crate gitdb;
 
 use std::path::{Path, PathBuf};
 use std::fs::File;
@@ -10,13 +11,7 @@ use std::io::Read;
 use std::io::Write;
 use std::io::stdout;
 
-mod git_db;
-mod secret_meta;
-mod crypto;
-mod manifest;
 mod account;
-mod encoding;
-mod git_creds;
 
 fn mona_dir() -> Result<PathBuf, String> {
     let home = std::env::home_dir()
@@ -37,7 +32,7 @@ fn mona_dir() -> Result<PathBuf, String> {
     }
 }
 
-fn ls(db: &git_db::DB, mut sess: &mut crypto::Session) -> Result<(), String> {
+fn ls(db: &gitdb::git_db::DB, mut sess: &mut gitdb::crypto::Session) -> Result<(), String> {
     let manifest = db.manifest(&mut sess)?;
     let db_root = db.root()?;
     for e in manifest.entries.iter() {
@@ -50,7 +45,7 @@ fn ls(db: &git_db::DB, mut sess: &mut crypto::Session) -> Result<(), String> {
     Ok(())
 }
 
-fn cat(db: &git_db::DB, lookup: &String, mut sess: &mut crypto::Session) -> Result<(), String> {
+fn cat(db: &gitdb::git_db::DB, lookup: &String, mut sess: &mut gitdb::crypto::Session) -> Result<(), String> {
     let plaintext = db.get(&lookup, &mut sess)?.decrypt(&mut sess)?;
     let utf8 = String::from_utf8(plaintext.data)
         .map_err(|s| format!("Failed to decode into utf8: {:?}", s))?;
@@ -60,11 +55,11 @@ fn cat(db: &git_db::DB, lookup: &String, mut sess: &mut crypto::Session) -> Resu
         .map_err(|s| format!("Failed to flush stdout: {:?}", s))
 }
 
-fn rm(db: &git_db::DB, lookup: &String, mut sess: &mut crypto::Session) -> Result<(), String> {
+fn rm(db: &gitdb::git_db::DB, lookup: &String, mut sess: &mut gitdb::crypto::Session) -> Result<(), String> {
     db.rm(&lookup, &mut sess)
 }
 
-fn put(db: &git_db::DB, file_path: &Path, lookup: &String, tags: &Vec<String>, mut sess: &mut crypto::Session) -> Result<(), String> {
+fn put(db: &gitdb::git_db::DB, file_path: &Path, lookup: &String, tags: &Vec<String>, mut sess: &mut gitdb::crypto::Session) -> Result<(), String> {
     let mut f = File::open(file_path)
         .map_err(|s| format!("Failed to open input file: {}", s))?;
     
@@ -73,16 +68,16 @@ fn put(db: &git_db::DB, file_path: &Path, lookup: &String, tags: &Vec<String>, m
         .map_err(|s| format!("Failed to read input file: {:?}", s))?;
 
 
-    let encrypted = crypto::Plaintext {
+    let encrypted = gitdb::crypto::Plaintext {
         data: data,
-        meta: secret_meta::Meta::generate_secure_meta(&db)?
+        meta: gitdb::secret_meta::Meta::generate_secure_meta(&db)?
     }.encrypt(&mut sess)?;
 
-    let entry_req = manifest::EntryRequest::new(&lookup, &tags);
+    let entry_req = gitdb::manifest::EntryRequest::new(&lookup, &tags);
     db.put(&entry_req, &encrypted, &mut sess)
 }
 
-fn file_arg(db: &git_db::DB, matches: &clap::ArgMatches, mut sess: &mut crypto::Session) -> Result<(), String> {
+fn file_arg(db: &gitdb::git_db::DB, matches: &clap::ArgMatches, mut sess: &mut gitdb::crypto::Session) -> Result<(), String> {
     match matches.subcommand() {
         ("put", Some(sub_m)) => {
             let plaintext_file_arg = sub_m.value_of("plaintext_file").unwrap();
@@ -114,7 +109,7 @@ fn file_arg(db: &git_db::DB, matches: &clap::ArgMatches, mut sess: &mut crypto::
     }
 }
 
-fn pass_arg(db: &git_db::DB, matches: &clap::ArgMatches, mut sess: &mut crypto::Session) -> Result<(), String> {
+fn pass_arg(db: &gitdb::git_db::DB, matches: &clap::ArgMatches, mut sess: &mut gitdb::crypto::Session) -> Result<(), String> {
     match matches.subcommand() {
         ("new", Some(sub_m)) => {
             let lookup_path_arg = sub_m.value_of("lookup_path").unwrap();
@@ -143,11 +138,11 @@ fn pass_arg(db: &git_db::DB, matches: &clap::ArgMatches, mut sess: &mut crypto::
                 ..group
             };
 
-            let req = manifest::EntryRequest::new(&lookup_path, &Vec::new());
+            let req = gitdb::manifest::EntryRequest::new(&lookup_path, &Vec::new());
 
-            let encrypted = crypto::Plaintext {
+            let encrypted = gitdb::crypto::Plaintext {
                 data: new_group.to_toml_bytes()?,
-                meta: secret_meta::Meta::generate_secure_meta(&db)?
+                meta: gitdb::secret_meta::Meta::generate_secure_meta(&db)?
             }.encrypt(&mut sess)?;
             
             db.put(&req, &encrypted, &mut sess)
@@ -169,15 +164,15 @@ fn pass_arg(db: &git_db::DB, matches: &clap::ArgMatches, mut sess: &mut crypto::
     }
 }
 
-fn remote_arg(db: &git_db::DB, matches: &clap::ArgMatches, mut sess: &mut crypto::Session) -> Result<(), String> {
+fn remote_arg(db: &gitdb::git_db::DB, matches: &clap::ArgMatches, mut sess: &mut gitdb::crypto::Session) -> Result<(), String> {
     match matches.subcommand() {
         ("add", Some(sub_m)) => {
             let name_arg = sub_m.value_of("name").unwrap();
             let url_arg = sub_m.value_of("url").unwrap();
             println!("Enter credentials for this git remote");
-            let username = crypto::read_stdin("username", false)?;
-            let password = crypto::read_stdin("password", true)?;
-            let remote = git_creds::Remote {
+            let username = gitdb::crypto::read_stdin("username", false)?;
+            let password = gitdb::crypto::read_stdin("password", true)?;
+            let remote = gitdb::git_creds::Remote {
                 name: name_arg.to_string(),
                 url: url_arg.to_string(),
                 username: username,
@@ -296,9 +291,9 @@ fn main() {
 
     let mona_home = mona_dir().expect("Unable to find Mona's root dir");
 
-    let mut sess = crypto::Session::new();
+    let mut sess = gitdb::crypto::Session::new();
     
-    let db = git_db::DB::init(&mona_home, &mut sess)
+    let db = gitdb::git_db::DB::init(&mona_home, &mut sess)
         .expect("Failed to initialize Mona's git database");
 
     if let Err(e) = db.sync(&mut sess) {
