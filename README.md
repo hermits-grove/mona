@@ -1,4 +1,4 @@
-# Mona - the transparent password manager
+# Mona - the less evil password manager
 
 <img src="/assets/mona_design.png"></img>
 
