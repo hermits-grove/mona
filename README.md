@@ -1,4 +1,6 @@
-# Mona - a transparently secure password manager
+# Mona - the transparent password manager
+
+<img src="/assets/mona_design.png"></img>
 
 ## _raison d’être_
 
