@@ -4,7 +4,7 @@
 
 ```
 ~ mona <any arg besides --help, init and init-from-remote>
-!! I went looking for mona's home at ~/.mona but it's not there!
+!! Tried to load data from mona's home at ~/.mona but had issues.
 !!
 !! Are you new to mona? to get started run:
 !!   `mona init`
@@ -62,7 +62,7 @@
 
 #### query
 
-``` bash
+``` 
 ~ mona ls
 !! secret phrase: ****
 !! checking... nope :( try again
@@ -80,7 +80,7 @@ work
     └── drusu
 ```
 
-``` bash
+``` 
 # subsequent calls from the same bash session use the session_key
 > mona news.ycom
 news.ycombinator.com/davidrusu
@@ -88,7 +88,7 @@ news.ycombinator.com/davidrusu
 └── pass: L2yTx7wkPh4x
 ```
 
-``` bash
+``` 
 > mona scutle
 !! found multiple entries
 file/scuttlebutt/main persona
