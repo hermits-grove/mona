@@ -1,0 +1,144 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<document type="com.apple.InterfaceBuilder3.Cocoa.XIB" version="3.0" toolsVersion="14109" targetRuntime="MacOSX.Cocoa" propertyAccessControl="none" useAutolayout="YES" customObjectInstantitationMethod="direct">
+    <dependencies>
+        <plugIn identifier="com.apple.InterfaceBuilder.CocoaPlugin" version="14109"/>
+        <capability name="Aspect ratio constraints" minToolsVersion="5.1"/>
+        <capability name="box content view" minToolsVersion="7.0"/>
+        <capability name="documents saved in the Xcode 8 format" minToolsVersion="8.0"/>
+        <capability name="stacking Non-gravity area distributions on NSStackView" minToolsVersion="7.0" minSystemVersion="10.11"/>
+    </dependencies>
+    <objects>
+        <customObject id="-2" userLabel="File's Owner" customClass="AuthViewController" customModule="mona" customModuleProvider="target">
+            <connections>
+                <outlet property="view" destination="Hz6-mo-xeY" id="0bl-1N-x8E"/>
+            </connections>
+        </customObject>
+        <customObject id="-1" userLabel="First Responder" customClass="FirstResponder"/>
+        <customObject id="-3" userLabel="Application" customClass="NSObject"/>
+        <customView wantsLayer="YES" id="Hz6-mo-xeY">
+            <rect key="frame" x="0.0" y="0.0" width="1024" height="817"/>
+            <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>
+            <subviews>
+                <stackView wantsLayer="YES" distribution="fill" orientation="vertical" alignment="leading" horizontalStackHuggingPriority="249.99998474121094" verticalStackHuggingPriority="249.99998474121094" detachesHiddenViews="YES" translatesAutoresizingMaskIntoConstraints="NO" id="2GW-jL-mxc">
+                    <rect key="frame" x="0.0" y="20" width="1024" height="797"/>
+                    <subviews>
+                        <box translatesAutoresizingMaskIntoConstraints="NO" id="KZq-XS-pSJ">
+                            <rect key="frame" x="-3" y="269" width="23" height="528"/>
+                            <view key="contentView" id="w59-JK-3gS">
+                                <rect key="frame" x="2" y="2" width="19" height="511"/>
+                                <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>
+                            </view>
+                        </box>
+                        <textField horizontalHuggingPriority="251" verticalHuggingPriority="750" translatesAutoresizingMaskIntoConstraints="NO" id="REC-vj-ora">
+                            <rect key="frame" x="-2" y="112" width="1028" height="153"/>
+                            <shadow key="shadow" blurRadius="4">
+                                <size key="offset" width="2" height="3"/>
+                                <color key="color" white="0.0" alpha="1" colorSpace="custom" customColorSpace="genericGamma22GrayColorSpace"/>
+                            </shadow>
+                            <textFieldCell key="cell" scrollable="YES" lineBreakMode="clipping" sendsActionOnEndEditing="YES" alignment="center" title="mona" id="iIk-X7-eV5">
+                                <font key="font" size="72" name="Pacifico-Regular"/>
+                                <color key="textColor" name="controlBackgroundColor" catalog="System" colorSpace="catalog"/>
+                                <color key="backgroundColor" name="controlColor" catalog="System" colorSpace="catalog"/>
+                            </textFieldCell>
+                        </textField>
+                        <textField horizontalHuggingPriority="251" verticalHuggingPriority="750" translatesAutoresizingMaskIntoConstraints="NO" id="HLO-MA-cpm">
+                            <rect key="frame" x="-2" y="80" width="1028" height="24"/>
+                            <shadow key="shadow" blurRadius="3">
+                                <size key="offset" width="2" height="3"/>
+                                <color key="color" white="0.0" alpha="1" colorSpace="custom" customColorSpace="genericGamma22GrayColorSpace"/>
+                            </shadow>
+                            <textFieldCell key="cell" scrollable="YES" lineBreakMode="clipping" sendsActionOnEndEditing="YES" alignment="center" title="a less nosy password manager" id="QXJ-qW-AuL">
+                                <font key="font" size="14" name="OpenSans-Regular"/>
+                                <color key="textColor" name="controlBackgroundColor" catalog="System" colorSpace="catalog"/>
+                                <color key="backgroundColor" name="controlColor" catalog="System" colorSpace="catalog"/>
+                            </textFieldCell>
+                        </textField>
+                        <visualEffectView wantsLayer="YES" appearanceType="vibrantLight" blendingMode="withinWindow" material="appearanceBased" state="active" translatesAutoresizingMaskIntoConstraints="NO" id="ddR-Cp-IfD">
+                            <rect key="frame" x="0.0" y="0.0" width="1024" height="72"/>
+                            <subviews>
+                                <stackView distribution="fill" orientation="horizontal" alignment="top" horizontalStackHuggingPriority="249.99998474121094" verticalStackHuggingPriority="249.99998474121094" detachesHiddenViews="YES" translatesAutoresizingMaskIntoConstraints="NO" id="zzP-fl-M56">
+                                    <rect key="frame" x="20" y="11" width="984" height="50"/>
+                                    <subviews>
+                                        <secureTextField verticalHuggingPriority="750" translatesAutoresizingMaskIntoConstraints="NO" id="kpQ-Hq-d5X">
+                                            <rect key="frame" x="0.0" y="14" width="926" height="22"/>
+                                            <constraints>
+                                                <constraint firstAttribute="width" relation="greaterThanOrEqual" constant="92" id="Xgu-eg-gMM"/>
+                                            </constraints>
+                                            <secureTextFieldCell key="cell" scrollable="YES" lineBreakMode="clipping" selectable="YES" editable="YES" sendsActionOnEndEditing="YES" borderStyle="bezel" alignment="left" placeholderString="master passphrase" usesSingleLineMode="YES" bezelStyle="round" id="WDD-Jy-MzE">
+                                                <font key="font" metaFont="system"/>
+                                                <color key="textColor" name="textColor" catalog="System" colorSpace="catalog"/>
+                                                <color key="backgroundColor" name="textBackgroundColor" catalog="System" colorSpace="catalog"/>
+                                                <allowedInputSourceLocales>
+                                                    <string>NSAllRomanInputSourcesLocaleIdentifier</string>
+                                                </allowedInputSourceLocales>
+                                            </secureTextFieldCell>
+                                        </secureTextField>
+                                        <button translatesAutoresizingMaskIntoConstraints="NO" id="5SO-9X-MLY">
+                                            <rect key="frame" x="934" y="0.0" width="50" height="50"/>
+                                            <constraints>
+                                                <constraint firstAttribute="width" secondItem="5SO-9X-MLY" secondAttribute="height" multiplier="1:1" id="0u7-RX-RQn"/>
+                                                <constraint firstAttribute="width" constant="50" id="IbY-XG-Hax"/>
+                                            </constraints>
+                                            <buttonCell key="cell" type="square" bezelStyle="shadowlessSquare" image="mona_icon" imagePosition="overlaps" alignment="center" imageScaling="proportionallyUpOrDown" inset="2" id="Lgq-jR-ji8">
+                                                <behavior key="behavior" pushIn="YES" lightByBackground="YES" lightByGray="YES"/>
+                                                <font key="font" metaFont="system"/>
+                                            </buttonCell>
+                                        </button>
+                                    </subviews>
+                                    <constraints>
+                                        <constraint firstItem="5SO-9X-MLY" firstAttribute="centerY" secondItem="zzP-fl-M56" secondAttribute="centerY" id="li0-pA-ESK"/>
+                                        <constraint firstItem="kpQ-Hq-d5X" firstAttribute="centerY" secondItem="zzP-fl-M56" secondAttribute="centerY" id="shQ-E1-Fhm"/>
+                                    </constraints>
+                                    <visibilityPriorities>
+                                        <integer value="1000"/>
+                                        <integer value="1000"/>
+                                    </visibilityPriorities>
+                                    <customSpacing>
+                                        <real value="3.4028234663852886e+38"/>
+                                        <real value="3.4028234663852886e+38"/>
+                                    </customSpacing>
+                                </stackView>
+                            </subviews>
+                            <constraints>
+                                <constraint firstAttribute="height" constant="72" id="Bfl-JK-UVX"/>
+                                <constraint firstItem="zzP-fl-M56" firstAttribute="centerY" secondItem="ddR-Cp-IfD" secondAttribute="centerY" id="DwF-hF-e6e"/>
+                                <constraint firstAttribute="trailing" secondItem="zzP-fl-M56" secondAttribute="trailing" constant="20" symbolic="YES" id="dv0-Dq-sSi"/>
+                                <constraint firstItem="zzP-fl-M56" firstAttribute="leading" secondItem="ddR-Cp-IfD" secondAttribute="leading" constant="20" symbolic="YES" id="jdY-sz-qu2"/>
+                            </constraints>
+                        </visualEffectView>
+                    </subviews>
+                    <constraints>
+                        <constraint firstItem="ddR-Cp-IfD" firstAttribute="top" secondItem="HLO-MA-cpm" secondAttribute="bottom" constant="8" symbolic="YES" id="0kK-TA-kLQ"/>
+                        <constraint firstItem="HLO-MA-cpm" firstAttribute="centerX" secondItem="2GW-jL-mxc" secondAttribute="centerX" id="8zF-hW-Ull"/>
+                        <constraint firstItem="ddR-Cp-IfD" firstAttribute="leading" secondItem="2GW-jL-mxc" secondAttribute="leading" id="Dgd-Kp-4cj"/>
+                        <constraint firstItem="HLO-MA-cpm" firstAttribute="top" secondItem="REC-vj-ora" secondAttribute="bottom" constant="8" symbolic="YES" id="Fuz-1u-fNG"/>
+                        <constraint firstAttribute="trailing" secondItem="ddR-Cp-IfD" secondAttribute="trailing" id="WDc-0v-BdD"/>
+                        <constraint firstItem="REC-vj-ora" firstAttribute="centerX" secondItem="2GW-jL-mxc" secondAttribute="centerX" id="vHF-2H-Ctz"/>
+                    </constraints>
+                    <visibilityPriorities>
+                        <integer value="1000"/>
+                        <integer value="1000"/>
+                        <integer value="1000"/>
+                        <integer value="1000"/>
+                    </visibilityPriorities>
+                    <customSpacing>
+                        <real value="3.4028234663852886e+38"/>
+                        <real value="3.4028234663852886e+38"/>
+                        <real value="3.4028234663852886e+38"/>
+                        <real value="3.4028234663852886e+38"/>
+                    </customSpacing>
+                </stackView>
+            </subviews>
+            <constraints>
+                <constraint firstAttribute="bottom" secondItem="2GW-jL-mxc" secondAttribute="bottom" constant="20" symbolic="YES" id="0Cl-Ve-ezY"/>
+                <constraint firstItem="2GW-jL-mxc" firstAttribute="top" secondItem="Hz6-mo-xeY" secondAttribute="top" id="1wS-l4-yJE"/>
+                <constraint firstAttribute="trailing" secondItem="2GW-jL-mxc" secondAttribute="trailing" id="TaE-cP-9BC"/>
+                <constraint firstItem="2GW-jL-mxc" firstAttribute="leading" secondItem="Hz6-mo-xeY" secondAttribute="leading" id="ic1-0C-afY"/>
+            </constraints>
+            <point key="canvasLocation" x="803" y="510.5"/>
+        </customView>
+    </objects>
+    <resources>
+        <image name="mona_icon" width="86.535209655761719" height="86.535209655761719"/>
+    </resources>
+</document>

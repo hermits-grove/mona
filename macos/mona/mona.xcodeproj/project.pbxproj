@@ -7,49 +7,51 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
-		C0FC4CB920AA94DC0060CC67 /* AppDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = C0FC4CB820AA94DC0060CC67 /* AppDelegate.swift */; };
-		C0FC4CBB20AA94DC0060CC67 /* ViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = C0FC4CBA20AA94DC0060CC67 /* ViewController.swift */; };
-		C0FC4CBD20AA94DE0060CC67 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = C0FC4CBC20AA94DE0060CC67 /* Assets.xcassets */; };
-		C0FC4CC020AA94DE0060CC67 /* Main.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = C0FC4CBE20AA94DE0060CC67 /* Main.storyboard */; };
-		C0FC4CCC20AA94DE0060CC67 /* monaTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = C0FC4CCB20AA94DE0060CC67 /* monaTests.swift */; };
-		C0FC4CD720AA9B550060CC67 /* castle-castle-fairy-tale-1909.jpg in Resources */ = {isa = PBXBuildFile; fileRef = C0FC4CD620AA9B550060CC67 /* castle-castle-fairy-tale-1909.jpg */; };
-		C0FC4CD920AAB14F0060CC67 /* icon.png in Resources */ = {isa = PBXBuildFile; fileRef = C0FC4CD820AAB14F0060CC67 /* icon.png */; };
+		C021C62F20AB881B0077BBA0 /* AppDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = C021C62E20AB881B0077BBA0 /* AppDelegate.swift */; };
+		C021C63120AB881D0077BBA0 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = C021C63020AB881D0077BBA0 /* Assets.xcassets */; };
+		C021C63420AB881D0077BBA0 /* MainMenu.xib in Resources */ = {isa = PBXBuildFile; fileRef = C021C63220AB881D0077BBA0 /* MainMenu.xib */; };
+		C021C64020AB881D0077BBA0 /* monaTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = C021C63F20AB881D0077BBA0 /* monaTests.swift */; };
+		C021C64C20AB88C60077BBA0 /* MainWindowController.swift in Sources */ = {isa = PBXBuildFile; fileRef = C021C64A20AB88C60077BBA0 /* MainWindowController.swift */; };
+		C021C64D20AB88C60077BBA0 /* MainWindowController.xib in Resources */ = {isa = PBXBuildFile; fileRef = C021C64B20AB88C60077BBA0 /* MainWindowController.xib */; };
+		C021C65020AB8E9E0077BBA0 /* AuthViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = C021C64E20AB8E9E0077BBA0 /* AuthViewController.swift */; };
+		C021C65120AB8E9E0077BBA0 /* AuthViewController.xib in Resources */ = {isa = PBXBuildFile; fileRef = C021C64F20AB8E9E0077BBA0 /* AuthViewController.xib */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
-		C0FC4CC820AA94DE0060CC67 /* PBXContainerItemProxy */ = {
+		C021C63C20AB881D0077BBA0 /* PBXContainerItemProxy */ = {
 			isa = PBXContainerItemProxy;
-			containerPortal = C0FC4CAD20AA94DC0060CC67 /* Project object */;
+			containerPortal = C021C62320AB881B0077BBA0 /* Project object */;
 			proxyType = 1;
-			remoteGlobalIDString = C0FC4CB420AA94DC0060CC67;
+			remoteGlobalIDString = C021C62A20AB881B0077BBA0;
 			remoteInfo = mona;
 		};
 /* End PBXContainerItemProxy section */
 
 /* Begin PBXFileReference section */
-		C0FC4CB520AA94DC0060CC67 /* mona.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = mona.app; sourceTree = BUILT_PRODUCTS_DIR; };
-		C0FC4CB820AA94DC0060CC67 /* AppDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppDelegate.swift; sourceTree = "<group>"; };
-		C0FC4CBA20AA94DC0060CC67 /* ViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ViewController.swift; sourceTree = "<group>"; };
-		C0FC4CBC20AA94DE0060CC67 /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
-		C0FC4CBF20AA94DE0060CC67 /* Base */ = {isa = PBXFileReference; lastKnownFileType = file.storyboard; name = Base; path = Base.lproj/Main.storyboard; sourceTree = "<group>"; };
-		C0FC4CC120AA94DE0060CC67 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
-		C0FC4CC220AA94DE0060CC67 /* mona.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = mona.entitlements; sourceTree = "<group>"; };
-		C0FC4CC720AA94DE0060CC67 /* monaTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = monaTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
-		C0FC4CCB20AA94DE0060CC67 /* monaTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = monaTests.swift; sourceTree = "<group>"; };
-		C0FC4CCD20AA94DE0060CC67 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
-		C0FC4CD620AA9B550060CC67 /* castle-castle-fairy-tale-1909.jpg */ = {isa = PBXFileReference; lastKnownFileType = image.jpeg; name = "castle-castle-fairy-tale-1909.jpg"; path = "Assets.xcassets/castle-castle-fairy-tale-1909.jpg"; sourceTree = "<group>"; };
-		C0FC4CD820AAB14F0060CC67 /* icon.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; name = icon.png; path = ../../../assets/icon.png; sourceTree = "<group>"; };
+		C021C62B20AB881B0077BBA0 /* mona.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = mona.app; sourceTree = BUILT_PRODUCTS_DIR; };
+		C021C62E20AB881B0077BBA0 /* AppDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppDelegate.swift; sourceTree = "<group>"; };
+		C021C63020AB881D0077BBA0 /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
+		C021C63320AB881D0077BBA0 /* Base */ = {isa = PBXFileReference; lastKnownFileType = file.xib; name = Base; path = Base.lproj/MainMenu.xib; sourceTree = "<group>"; };
+		C021C63520AB881D0077BBA0 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
+		C021C63620AB881D0077BBA0 /* mona.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = mona.entitlements; sourceTree = "<group>"; };
+		C021C63B20AB881D0077BBA0 /* monaTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = monaTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
+		C021C63F20AB881D0077BBA0 /* monaTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = monaTests.swift; sourceTree = "<group>"; };
+		C021C64120AB881D0077BBA0 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
+		C021C64A20AB88C60077BBA0 /* MainWindowController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MainWindowController.swift; sourceTree = "<group>"; };
+		C021C64B20AB88C60077BBA0 /* MainWindowController.xib */ = {isa = PBXFileReference; lastKnownFileType = file.xib; path = MainWindowController.xib; sourceTree = "<group>"; };
+		C021C64E20AB8E9E0077BBA0 /* AuthViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AuthViewController.swift; sourceTree = "<group>"; };
+		C021C64F20AB8E9E0077BBA0 /* AuthViewController.xib */ = {isa = PBXFileReference; lastKnownFileType = file.xib; path = AuthViewController.xib; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
-		C0FC4CB220AA94DC0060CC67 /* Frameworks */ = {
+		C021C62820AB881B0077BBA0 /* Frameworks */ = {
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
-		C0FC4CC420AA94DE0060CC67 /* Frameworks */ = {
+		C021C63820AB881D0077BBA0 /* Frameworks */ = {
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
@@ -59,44 +61,45 @@
 /* End PBXFrameworksBuildPhase section */
 
 /* Begin PBXGroup section */
-		C0FC4CAC20AA94DC0060CC67 = {
+		C021C62220AB881B0077BBA0 = {
 			isa = PBXGroup;
 			children = (
-				C0FC4CB720AA94DC0060CC67 /* mona */,
-				C0FC4CCA20AA94DE0060CC67 /* monaTests */,
-				C0FC4CB620AA94DC0060CC67 /* Products */,
+				C021C62D20AB881B0077BBA0 /* mona */,
+				C021C63E20AB881D0077BBA0 /* monaTests */,
+				C021C62C20AB881B0077BBA0 /* Products */,
 			);
 			sourceTree = "<group>";
 		};
-		C0FC4CB620AA94DC0060CC67 /* Products */ = {
+		C021C62C20AB881B0077BBA0 /* Products */ = {
 			isa = PBXGroup;
 			children = (
-				C0FC4CB520AA94DC0060CC67 /* mona.app */,
-				C0FC4CC720AA94DE0060CC67 /* monaTests.xctest */,
+				C021C62B20AB881B0077BBA0 /* mona.app */,
+				C021C63B20AB881D0077BBA0 /* monaTests.xctest */,
 			);
 			name = Products;
 			sourceTree = "<group>";
 		};
-		C0FC4CB720AA94DC0060CC67 /* mona */ = {
+		C021C62D20AB881B0077BBA0 /* mona */ = {
 			isa = PBXGroup;
 			children = (
-				C0FC4CB820AA94DC0060CC67 /* AppDelegate.swift */,
-				C0FC4CBA20AA94DC0060CC67 /* ViewController.swift */,
-				C0FC4CBC20AA94DE0060CC67 /* Assets.xcassets */,
-				C0FC4CD820AAB14F0060CC67 /* icon.png */,
-				C0FC4CD620AA9B550060CC67 /* castle-castle-fairy-tale-1909.jpg */,
-				C0FC4CBE20AA94DE0060CC67 /* Main.storyboard */,
-				C0FC4CC120AA94DE0060CC67 /* Info.plist */,
-				C0FC4CC220AA94DE0060CC67 /* mona.entitlements */,
+				C021C62E20AB881B0077BBA0 /* AppDelegate.swift */,
+				C021C64A20AB88C60077BBA0 /* MainWindowController.swift */,
+				C021C64E20AB8E9E0077BBA0 /* AuthViewController.swift */,
+				C021C64F20AB8E9E0077BBA0 /* AuthViewController.xib */,
+				C021C64B20AB88C60077BBA0 /* MainWindowController.xib */,
+				C021C63020AB881D0077BBA0 /* Assets.xcassets */,
+				C021C63220AB881D0077BBA0 /* MainMenu.xib */,
+				C021C63520AB881D0077BBA0 /* Info.plist */,
+				C021C63620AB881D0077BBA0 /* mona.entitlements */,
 			);
 			path = mona;
 			sourceTree = "<group>";
 		};
-		C0FC4CCA20AA94DE0060CC67 /* monaTests */ = {
+		C021C63E20AB881D0077BBA0 /* monaTests */ = {
 			isa = PBXGroup;
 			children = (
-				C0FC4CCB20AA94DE0060CC67 /* monaTests.swift */,
-				C0FC4CCD20AA94DE0060CC67 /* Info.plist */,
+				C021C63F20AB881D0077BBA0 /* monaTests.swift */,
+				C021C64120AB881D0077BBA0 /* Info.plist */,
 			);
 			path = monaTests;
 			sourceTree = "<group>";
@@ -104,13 +107,13 @@
 /* End PBXGroup section */
 
 /* Begin PBXNativeTarget section */
-		C0FC4CB420AA94DC0060CC67 /* mona */ = {
+		C021C62A20AB881B0077BBA0 /* mona */ = {
 			isa = PBXNativeTarget;
-			buildConfigurationList = C0FC4CD020AA94DE0060CC67 /* Build configuration list for PBXNativeTarget "mona" */;
+			buildConfigurationList = C021C64420AB881D0077BBA0 /* Build configuration list for PBXNativeTarget "mona" */;
 			buildPhases = (
-				C0FC4CB120AA94DC0060CC67 /* Sources */,
-				C0FC4CB220AA94DC0060CC67 /* Frameworks */,
-				C0FC4CB320AA94DC0060CC67 /* Resources */,
+				C021C62720AB881B0077BBA0 /* Sources */,
+				C021C62820AB881B0077BBA0 /* Frameworks */,
+				C021C62920AB881B0077BBA0 /* Resources */,
 			);
 			buildRules = (
 			);
@@ -118,47 +121,47 @@
 			);
 			name = mona;
 			productName = mona;
-			productReference = C0FC4CB520AA94DC0060CC67 /* mona.app */;
+			productReference = C021C62B20AB881B0077BBA0 /* mona.app */;
 			productType = "com.apple.product-type.application";
 		};
-		C0FC4CC620AA94DE0060CC67 /* monaTests */ = {
+		C021C63A20AB881D0077BBA0 /* monaTests */ = {
 			isa = PBXNativeTarget;
-			buildConfigurationList = C0FC4CD320AA94DE0060CC67 /* Build configuration list for PBXNativeTarget "monaTests" */;
+			buildConfigurationList = C021C64720AB881D0077BBA0 /* Build configuration list for PBXNativeTarget "monaTests" */;
 			buildPhases = (
-				C0FC4CC320AA94DE0060CC67 /* Sources */,
-				C0FC4CC420AA94DE0060CC67 /* Frameworks */,
-				C0FC4CC520AA94DE0060CC67 /* Resources */,
+				C021C63720AB881D0077BBA0 /* Sources */,
+				C021C63820AB881D0077BBA0 /* Frameworks */,
+				C021C63920AB881D0077BBA0 /* Resources */,
 			);
 			buildRules = (
 			);
 			dependencies = (
-				C0FC4CC920AA94DE0060CC67 /* PBXTargetDependency */,
+				C021C63D20AB881D0077BBA0 /* PBXTargetDependency */,
 			);
 			name = monaTests;
 			productName = monaTests;
-			productReference = C0FC4CC720AA94DE0060CC67 /* monaTests.xctest */;
+			productReference = C021C63B20AB881D0077BBA0 /* monaTests.xctest */;
 			productType = "com.apple.product-type.bundle.unit-test";
 		};
 /* End PBXNativeTarget section */
 
 /* Begin PBXProject section */
-		C0FC4CAD20AA94DC0060CC67 /* Project object */ = {
+		C021C62320AB881B0077BBA0 /* Project object */ = {
 			isa = PBXProject;
 			attributes = {
 				LastSwiftUpdateCheck = 0930;
 				LastUpgradeCheck = 0930;
 				ORGANIZATIONNAME = "David Rusu";
 				TargetAttributes = {
-					C0FC4CB420AA94DC0060CC67 = {
+					C021C62A20AB881B0077BBA0 = {
 						CreatedOnToolsVersion = 9.3.1;
 					};
-					C0FC4CC620AA94DE0060CC67 = {
+					C021C63A20AB881D0077BBA0 = {
 						CreatedOnToolsVersion = 9.3.1;
-						TestTargetID = C0FC4CB420AA94DC0060CC67;
+						TestTargetID = C021C62A20AB881B0077BBA0;
 					};
 				};
 			};
-			buildConfigurationList = C0FC4CB020AA94DC0060CC67 /* Build configuration list for PBXProject "mona" */;
+			buildConfigurationList = C021C62620AB881B0077BBA0 /* Build configuration list for PBXProject "mona" */;
 			compatibilityVersion = "Xcode 9.3";
 			developmentRegion = en;
 			hasScannedForEncodings = 0;
@@ -166,30 +169,30 @@
 				en,
 				Base,
 			);
-			mainGroup = C0FC4CAC20AA94DC0060CC67;
-			productRefGroup = C0FC4CB620AA94DC0060CC67 /* Products */;
+			mainGroup = C021C62220AB881B0077BBA0;
+			productRefGroup = C021C62C20AB881B0077BBA0 /* Products */;
 			projectDirPath = "";
 			projectRoot = "";
 			targets = (
-				C0FC4CB420AA94DC0060CC67 /* mona */,
-				C0FC4CC620AA94DE0060CC67 /* monaTests */,
+				C021C62A20AB881B0077BBA0 /* mona */,
+				C021C63A20AB881D0077BBA0 /* monaTests */,
 			);
 		};
 /* End PBXProject section */
 
 /* Begin PBXResourcesBuildPhase section */
-		C0FC4CB320AA94DC0060CC67 /* Resources */ = {
+		C021C62920AB881B0077BBA0 /* Resources */ = {
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				C0FC4CD920AAB14F0060CC67 /* icon.png in Resources */,
-				C0FC4CBD20AA94DE0060CC67 /* Assets.xcassets in Resources */,
-				C0FC4CC020AA94DE0060CC67 /* Main.storyboard in Resources */,
-				C0FC4CD720AA9B550060CC67 /* castle-castle-fairy-tale-1909.jpg in Resources */,
+				C021C65120AB8E9E0077BBA0 /* AuthViewController.xib in Resources */,
+				C021C63120AB881D0077BBA0 /* Assets.xcassets in Resources */,
+				C021C64D20AB88C60077BBA0 /* MainWindowController.xib in Resources */,
+				C021C63420AB881D0077BBA0 /* MainMenu.xib in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
-		C0FC4CC520AA94DE0060CC67 /* Resources */ = {
+		C021C63920AB881D0077BBA0 /* Resources */ = {
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
@@ -199,46 +202,47 @@
 /* End PBXResourcesBuildPhase section */
 
 /* Begin PBXSourcesBuildPhase section */
-		C0FC4CB120AA94DC0060CC67 /* Sources */ = {
+		C021C62720AB881B0077BBA0 /* Sources */ = {
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				C0FC4CBB20AA94DC0060CC67 /* ViewController.swift in Sources */,
-				C0FC4CB920AA94DC0060CC67 /* AppDelegate.swift in Sources */,
+				C021C64C20AB88C60077BBA0 /* MainWindowController.swift in Sources */,
+				C021C65020AB8E9E0077BBA0 /* AuthViewController.swift in Sources */,
+				C021C62F20AB881B0077BBA0 /* AppDelegate.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
-		C0FC4CC320AA94DE0060CC67 /* Sources */ = {
+		C021C63720AB881D0077BBA0 /* Sources */ = {
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				C0FC4CCC20AA94DE0060CC67 /* monaTests.swift in Sources */,
+				C021C64020AB881D0077BBA0 /* monaTests.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
 /* End PBXSourcesBuildPhase section */
 
 /* Begin PBXTargetDependency section */
-		C0FC4CC920AA94DE0060CC67 /* PBXTargetDependency */ = {
+		C021C63D20AB881D0077BBA0 /* PBXTargetDependency */ = {
 			isa = PBXTargetDependency;
-			target = C0FC4CB420AA94DC0060CC67 /* mona */;
-			targetProxy = C0FC4CC820AA94DE0060CC67 /* PBXContainerItemProxy */;
+			target = C021C62A20AB881B0077BBA0 /* mona */;
+			targetProxy = C021C63C20AB881D0077BBA0 /* PBXContainerItemProxy */;
 		};
 /* End PBXTargetDependency section */
 
 /* Begin PBXVariantGroup section */
-		C0FC4CBE20AA94DE0060CC67 /* Main.storyboard */ = {
+		C021C63220AB881D0077BBA0 /* MainMenu.xib */ = {
 			isa = PBXVariantGroup;
 			children = (
-				C0FC4CBF20AA94DE0060CC67 /* Base */,
+				C021C63320AB881D0077BBA0 /* Base */,
 			);
-			name = Main.storyboard;
+			name = MainMenu.xib;
 			sourceTree = "<group>";
 		};
 /* End PBXVariantGroup section */
 
 /* Begin XCBuildConfiguration section */
-		C0FC4CCE20AA94DE0060CC67 /* Debug */ = {
+		C021C64220AB881D0077BBA0 /* Debug */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				ALWAYS_SEARCH_USER_PATHS = NO;
@@ -298,7 +302,7 @@
 			};
 			name = Debug;
 		};
-		C0FC4CCF20AA94DE0060CC67 /* Release */ = {
+		C021C64320AB881D0077BBA0 /* Release */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				ALWAYS_SEARCH_USER_PATHS = NO;
@@ -351,7 +355,7 @@
 			};
 			name = Release;
 		};
-		C0FC4CD120AA94DE0060CC67 /* Debug */ = {
+		C021C64520AB881D0077BBA0 /* Debug */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
@@ -370,7 +374,7 @@
 			};
 			name = Debug;
 		};
-		C0FC4CD220AA94DE0060CC67 /* Release */ = {
+		C021C64620AB881D0077BBA0 /* Release */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
@@ -389,7 +393,7 @@
 			};
 			name = Release;
 		};
-		C0FC4CD420AA94DE0060CC67 /* Debug */ = {
+		C021C64820AB881D0077BBA0 /* Debug */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				ALWAYS_EMBED_SWIFT_STANDARD_LIBRARIES = YES;
@@ -410,7 +414,7 @@
 			};
 			name = Debug;
 		};
-		C0FC4CD520AA94DE0060CC67 /* Release */ = {
+		C021C64920AB881D0077BBA0 /* Release */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				ALWAYS_EMBED_SWIFT_STANDARD_LIBRARIES = YES;
@@ -434,34 +438,34 @@
 /* End XCBuildConfiguration section */
 
 /* Begin XCConfigurationList section */
-		C0FC4CB020AA94DC0060CC67 /* Build configuration list for PBXProject "mona" */ = {
+		C021C62620AB881B0077BBA0 /* Build configuration list for PBXProject "mona" */ = {
 			isa = XCConfigurationList;
 			buildConfigurations = (
-				C0FC4CCE20AA94DE0060CC67 /* Debug */,
-				C0FC4CCF20AA94DE0060CC67 /* Release */,
+				C021C64220AB881D0077BBA0 /* Debug */,
+				C021C64320AB881D0077BBA0 /* Release */,
 			);
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Release;
 		};
-		C0FC4CD020AA94DE0060CC67 /* Build configuration list for PBXNativeTarget "mona" */ = {
+		C021C64420AB881D0077BBA0 /* Build configuration list for PBXNativeTarget "mona" */ = {
 			isa = XCConfigurationList;
 			buildConfigurations = (
-				C0FC4CD120AA94DE0060CC67 /* Debug */,
-				C0FC4CD220AA94DE0060CC67 /* Release */,
+				C021C64520AB881D0077BBA0 /* Debug */,
+				C021C64620AB881D0077BBA0 /* Release */,
 			);
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Release;
 		};
-		C0FC4CD320AA94DE0060CC67 /* Build configuration list for PBXNativeTarget "monaTests" */ = {
+		C021C64720AB881D0077BBA0 /* Build configuration list for PBXNativeTarget "monaTests" */ = {
 			isa = XCConfigurationList;
 			buildConfigurations = (
-				C0FC4CD420AA94DE0060CC67 /* Debug */,
-				C0FC4CD520AA94DE0060CC67 /* Release */,
+				C021C64820AB881D0077BBA0 /* Debug */,
+				C021C64920AB881D0077BBA0 /* Release */,
 			);
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Release;
 		};
 /* End XCConfigurationList section */
 	};
-	rootObject = C0FC4CAD20AA94DC0060CC67 /* Project object */;
+	rootObject = C021C62320AB881B0077BBA0 /* Project object */;
 }
