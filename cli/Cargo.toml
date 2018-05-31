@@ -8,7 +8,9 @@ serde = "1.0.27"
 serde_derive = "1.0.27"
 clap = "2.31.1"
 toml = "0.4.5"
-gitdb = "0.1.1"
+
+[dependencies.gitdb]
+path = "../../gitdb"
 
 [[bin]]
 name = "mona"
