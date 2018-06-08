@@ -3,6 +3,7 @@ extern crate serde_derive;
 extern crate clap;
 extern crate gitdb;
 extern crate rmp_serde;
+extern crate csv;
 
 use std::path::{Path, PathBuf};
 use std::io::Write;
@@ -15,6 +16,17 @@ mod term_graphics;
 
 use account::Account;
 use error::Result;
+
+#[derive(Debug,Deserialize)]
+struct LastPassRecord {
+    url: Option<String>,
+    username: Option<String>,
+    password: Option<String>,
+    extra: Option<String>,
+    name: Option<String>,
+    grouping: Option<String>,
+    fav: i64
+}
 
 fn read_stdin(prompt: &str) -> Result<String> {
     print!("{}: ", prompt);
@@ -224,6 +236,21 @@ fn main() -> Result<()> {
                      .help("Display users in the given accounts matching a query")
                      .takes_value(true)
                 )
+        )
+        .subcommand(
+            clap::SubCommand::with_name("import")
+                .about("import passwords from another password manager")
+                .arg(clap::Arg::with_name("source")
+                     .help("password manager your importing from")
+                     .takes_value(true)
+                     .required(true)
+                     .possible_values(&["lastpass"])
+                )
+                .arg(clap::Arg::with_name("data-file")
+                     .help("path to file storing the exported passwords (file format varies by source)")
+                     .takes_value(true)
+                     .required(true)
+                )
         );
 
     let matches_res = app.get_matches_from_safe_borrow(std::env::args_os());
@@ -309,6 +336,41 @@ fn main() -> Result<()> {
                 lines.extend(term_graphics::boxed(&account_strs, 0).iter().cloned());
             }
             println!("{}", lines.join("\n"));
+        },
+        ("import", Some(sub_match)) => {
+            let (db, sess) = open_db(&mona_root);
+            let source = sub_match.value_of("source").unwrap(); // required
+            let data_file = sub_match.value_of("data-file").unwrap(); // required
+            match source {
+                "lastpass" => {
+                    let mut rdr = csv::Reader::from_path(&Path::new(&data_file))?;
+                    for record in rdr.deserialize() {
+                        let record: LastPassRecord = record?;
+                        match record {
+                            LastPassRecord { username: Some(ref u), password: Some(ref p), name: Some(ref n), ..} => {
+                                let acc_key = format!("mona/accounts/{}", n);
+                                let mut acc_set = match db.read_block(&acc_key, &sess) {
+                                    Ok(block) => block.to_set()?,
+                                    Err(gitdb::Error::NotFound) => gitdb::ditto::Set::new(),
+                                    Err(e) => Err(e)?
+                                };
+                                let cred = Account { user: u.to_string(), pass: p.to_string() };
+                                let bytes = rmp_serde::to_vec(&cred)?;
+                                acc_set.insert(bytes.into(), sess.site_id);
+                                let block = gitdb::Block::Set(acc_set);
+                                db.write_block(&acc_key, &block, &sess)?;
+                            },
+                            rec => {
+                                println!("Missing user, pass or name, Skipping!!");
+                                println!("{:?}", rec);
+                            }
+                        }
+                    }
+                },
+                _ => {
+                    panic!("Bad source: {}", source);
+                }
+            }
         },
         (_, None) => {
             let args: Vec<String> = std::env::args().into_iter().skip(1).collect();

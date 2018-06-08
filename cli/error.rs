@@ -1,6 +1,7 @@
 extern crate gitdb;
 extern crate clap;
 extern crate rmp_serde;
+extern crate csv;
 
 use std;
 
@@ -13,7 +14,14 @@ pub enum Error {
     Clap(clap::Error),
     IO(std::io::Error),
     RMPEncode(rmp_serde::encode::Error),
-    RMPDecode(rmp_serde::decode::Error)
+    RMPDecode(rmp_serde::decode::Error),
+    CSV(csv::Error)
+}
+
+impl From<csv::Error> for Error {
+    fn from(err: csv::Error) -> Self {
+        Error::CSV(err)
+    }
 }
 
 impl From<rmp_serde::encode::Error> for Error {
@@ -21,6 +29,7 @@ impl From<rmp_serde::encode::Error> for Error {
         Error::RMPEncode(err)
     }
 }
+
 impl From<rmp_serde::decode::Error> for Error {
     fn from(err: rmp_serde::decode::Error) -> Self {
         Error::RMPDecode(err)
