@@ -1,323 +1,320 @@
 #[macro_use]
 extern crate serde_derive;
-extern crate toml;
 extern crate clap;
-
 extern crate gitdb;
+extern crate rmp_serde;
 
 use std::path::{Path, PathBuf};
-use std::fs::File;
-use std::io::Read;
 use std::io::Write;
-use std::io::stdout;
 
+use gitdb::ditto::{Set};
+
+mod error;
 mod account;
+mod term_graphics;
 
-fn mona_dir() -> Result<PathBuf, String> {
+use account::Account;
+use error::Result;
+
+fn read_stdin(prompt: &str) -> Result<String> {
+    print!("{}: ", prompt);
+    std::io::stdout().flush()?;
+    let mut input = String::new();
+    std::io::stdin().read_line(&mut input)?;
+    assert_eq!(input.chars().last(), Some('\n'));
+    let without_nl: String = input.chars().take(input.len() - 1).collect();
+    Ok(without_nl)
+}
+
+fn default_mona_root() -> Result<PathBuf> {
     let home = std::env::home_dir()
-        .ok_or(String::from("No home directory found"))?;
-
-    let mona_dir = home.join(".mona");
-
-    if ! mona_dir.exists() {
-        std::fs::create_dir(&mona_dir)
-            .map_err(|e| format!("Failed to create {:?}: {:?}", mona_dir, e))?;
+        .ok_or("No home directory found")?;
+    let mona_root = home.join(".mona");
+    if !mona_root.exists() {
+        std::fs::create_dir(&mona_root)?;
     }
-
-    if !mona_dir.is_dir() {
-        // TAI: does this matter?
-        Err(format!("{:?} exists but is not a directory", mona_dir))
+    if !mona_root.is_dir() {
+        Err(format!("{:?} is not a directory", mona_root).into())
     } else {
-        Ok(mona_dir)
+        Ok(mona_root)
     }
 }
 
-fn ls(db: &gitdb::git_db::DB, mut sess: &mut gitdb::crypto::Session) -> Result<(), String> {
-    let manifest = db.manifest(&mut sess)?;
-    let db_root = db.root()?;
-    for e in manifest.entries.iter() {
-        let garbled_path = db_root.join(&e.garbled_path);
-        let garbled_path_str = garbled_path.to_str()
-            .ok_or(String::from("Failed path -> string conversion"))?;
-        
-        println!("{} -> {}", e.path, garbled_path_str);
+fn init(mona_root: &Path) -> Result<()> {
+    let gitdb_root = mona_root.join("db");
+    if gitdb::DB::open(&gitdb_root).is_ok() {
+        println!("!! a gitdb instance already exists at {:?}!", gitdb_root);
+        std::process::exit(1);
+    }
+
+    println!("!! Welcome to mona!");
+    let db = gitdb::DB::init(&gitdb_root)?;
+    println!("!! initialized at {:?}", mona_root);
+    println!("!!");
+    println!("!! Pick your master passphrase. This phrase will protect");
+    println!("!! all data stored with mona. Make sure it's strong!");
+    let mut pass;
+    loop {
+        pass = read_stdin("enter your secret phrase")?;
+        let pass_reentered = read_stdin("enter the phrase once more")?;
+        if pass == pass_reentered {
+            break;
+        }
+        println!("!! the two secrets you entered are different, lets try again");
+    }
+    
+    print!("!! setting some things up... ");
+    std::io::stdout().flush()?;
+    db.create_salt()?;
+    let entropy = gitdb::crypto::create_entropy_file(&mona_root)?;
+    let kdf = gitdb::crypto::KDF {
+        pbkdf2_iters: 100_000,
+        salt: db.salt()?,
+        entropy: entropy
     };
+    
+    let sess = gitdb::Session {
+        site_id: 1,
+        master_key: kdf.master_key(&pass.as_bytes())
+    };
+
+    db.create_key_salt(&sess)?;
+    println!("!! all set!");
+    println!("\
+!!
+!! You now have this file in your mona directory:
+!!   {:?}
+!!
+!! This file stores some random bits which are mixed
+!! with your master passphrase to strengthen your
+!! encryption key.
+!! 1. This file is stored in plaintext on your device,
+!! 2. It's NOT tracked in Git
+!! 3. It's up to you to keep it safe
+!!
+!! The entropy file is here to protect you from nefarious
+!! people getting access to the servers storing your data.
+!! It gives you an extra 256 bits of entropy on top of
+!! the entropy you provide from your master passphrase.
+!!
+!! Attackers need to know both the entropy file and your
+!! master passphrase to decrypt your files.
+!!
+!! Alright, that's it. Enjoy :)", mona_root.join("entropy_file"));
     Ok(())
 }
 
-fn cat(db: &gitdb::git_db::DB, lookup: &String, mut sess: &mut gitdb::crypto::Session) -> Result<(), String> {
-    let plaintext = db.get(&lookup, &mut sess)?.decrypt(&mut sess)?;
-    let utf8 = String::from_utf8(plaintext.data)
-        .map_err(|s| format!("Failed to decode into utf8: {:?}", s))?;
-
-    print!("{}", utf8);
-    stdout().flush()
-        .map_err(|s| format!("Failed to flush stdout: {:?}", s))
-}
-
-fn rm(db: &gitdb::git_db::DB, lookup: &String, mut sess: &mut gitdb::crypto::Session) -> Result<(), String> {
-    db.rm(&lookup, &mut sess)
-}
-
-fn put(db: &gitdb::git_db::DB, file_path: &Path, lookup: &String, tags: &Vec<String>, mut sess: &mut gitdb::crypto::Session) -> Result<(), String> {
-    let mut f = File::open(file_path)
-        .map_err(|s| format!("Failed to open input file: {}", s))?;
-    
-    let mut data = Vec::new();
-    f.read_to_end(&mut data)
-        .map_err(|s| format!("Failed to read input file: {:?}", s))?;
-
-
-    let encrypted = gitdb::crypto::Plaintext {
-        data: data,
-        meta: gitdb::secret_meta::Meta::generate_secure_meta(&db)?
-    }.encrypt(&mut sess)?;
-
-    let entry_req = gitdb::manifest::EntryRequest::new(&lookup, &tags);
-    db.put(&entry_req, &encrypted, &mut sess)
-}
-
-fn file_arg(db: &gitdb::git_db::DB, matches: &clap::ArgMatches, mut sess: &mut gitdb::crypto::Session) -> Result<(), String> {
-    match matches.subcommand() {
-        ("put", Some(sub_m)) => {
-            let plaintext_file_arg = sub_m.value_of("plaintext_file").unwrap();
-            let lookup_path_arg = sub_m.value_of("lookup_path").unwrap();
-            let tag_args = sub_m.values_of("tag").unwrap_or(clap::Values::default());
-
-            let file_path = Path::new(plaintext_file_arg);
-            let lookup_path = lookup_path_arg.to_string();
-            let tags: Vec<String> = tag_args
-                .map(|s| s.to_string())
-                .collect();
-
-            put(&db, &file_path, &lookup_path, &tags, &mut sess)
+fn open_db(mona_root: &Path) -> (gitdb::DB, gitdb::Session) {
+    let gitdb_root = mona_root.join("db");
+    let db = match gitdb::DB::open(&gitdb_root) {
+        Ok(db) => {
+            println!("!! opened gitdb from {:?}", gitdb_root);
+            db
         },
-        ("cat", Some(sub_m)) => {
-            let lookup_path = sub_m.value_of("lookup_path").unwrap().to_string();
-            cat(&db, &lookup_path, &mut sess)
-        },
-        ("rm", Some(sub_m)) => {
-            let lookup_path = sub_m.value_of("lookup_path").unwrap().to_string();
-            rm(&db, &lookup_path, &mut sess)
-        },
-        ("ls", Some(_)) => {
-            ls(&db, &mut sess)
-        },
-        _ => {
-            Err(format!("Unexpected argument"))
-        }
-    }
-}
-
-fn pass_arg(db: &gitdb::git_db::DB, matches: &clap::ArgMatches, mut sess: &mut gitdb::crypto::Session) -> Result<(), String> {
-    match matches.subcommand() {
-        ("new", Some(sub_m)) => {
-            let lookup_path_arg = sub_m.value_of("lookup_path").unwrap();
-            let pass_arg = sub_m.value_of("password").unwrap();
-            let username_arg = sub_m.value_of("username").unwrap();
-
-            let lookup_path = format!("pass/{}", lookup_path_arg);
-            
-            let group = match db.get(&lookup_path, &mut sess) {
-                Ok(encrypted) => encrypted.decrypt(&mut sess)
-                    .and_then(|plaintext| account::Group::from_toml_bytes(&plaintext.data))
-                    .map_err(|e| format!("Failed to parse file as an account group, this likely means you've written non password manager files to the password manager key space: {}", e)),
-                Err(_) => Ok(account::Group::empty()) // no entry with path exists, create new account group
-            }?;
-
-            let account = account::Account {
-                username: username_arg.to_string(),
-                password: pass_arg.to_string()
-            };
-
-            let mut accounts = group.accounts.clone();
-            accounts.push(account);
-
-            let new_group = account::Group {
-                accounts: accounts,
-                ..group
-            };
-
-            let req = gitdb::manifest::EntryRequest::new(&lookup_path, &Vec::new());
-
-            let encrypted = gitdb::crypto::Plaintext {
-                data: new_group.to_toml_bytes()?,
-                meta: gitdb::secret_meta::Meta::generate_secure_meta(&db)?
-            }.encrypt(&mut sess)?;
-            
-            db.put(&req, &encrypted, &mut sess)
-        },
-        ("get", Some(sub_m)) => {
-            let lookup_path = sub_m.value_of("lookup_path").unwrap().to_string();
-            cat(&db, &format!("pass/{}", lookup_path), &mut sess)
-        },
-        ("rm", Some(sub_m)) => {
-            let lookup_path = sub_m.value_of("lookup_path").unwrap().to_string();
-            rm(&db, &lookup_path, &mut sess)
-        },
-        ("ls", Some(__m)) => {
-            ls(&db, &mut sess)
-        },
-        _ => {
-            Err(format!("Unexpected argument"))
-        }
-    }
-}
-
-fn remote_arg(db: &gitdb::git_db::DB, matches: &clap::ArgMatches, mut sess: &mut gitdb::crypto::Session) -> Result<(), String> {
-    match matches.subcommand() {
-        ("add", Some(sub_m)) => {
-            let name_arg = sub_m.value_of("name").unwrap();
-            let url_arg = sub_m.value_of("url").unwrap();
-            println!("Enter credentials for this git remote");
-            let username = gitdb::crypto::read_stdin("username", false)?;
-            let password = gitdb::crypto::read_stdin("password", true)?;
-            let remote = gitdb::git_creds::Remote {
-                name: name_arg.to_string(),
-                url: url_arg.to_string(),
-                username: username,
-                password: password
-            };
-            db.add_remote(&remote, &mut sess)
-        },
-        ("remove", Some(sub_m)) => {
-            let name_arg = sub_m.value_of("name").unwrap();
-            db.remove_remote(&name_arg.to_string(), &mut sess)
-        },
-        ("ls", Some(_)) => {
-            for remote in db.remotes(&mut sess)?.remotes.iter() {
-                println!("{}\t{} {}", remote.name, remote.username, remote.url);
-            }
-            Ok(())
-        },
-        _ => {
-            Err(format!("Unexpected argument"))
-        }
-    }
-}
-
-fn main() {
-    let mut app = clap::App::new("Mona")
-        .version("0.0.1")
-        .about("Transparently secure data manager")
-        .subcommand(
-            clap::SubCommand::with_name("file")
-                .about("Encrypted file operations")
-                .subcommand(
-                    clap::SubCommand::with_name("put")
-                        .about("Encrypt a file and store it in Mona")
-                        .version("0.0.1")
-                        .arg(clap::Arg::with_name("plaintext_file")
-                             .required(true)
-                             .help("file to encrypt"))
-                        .arg(clap::Arg::with_name("lookup_path")
-                             .required(true)
-                             .help("path to be used to lookup this file"))
-                        .arg(clap::Arg::with_name("tag")
-                             .short("t")
-                             .multiple(true)
-                             .takes_value(true)
-                             .help("tags to help you find this file later")))
-                .subcommand(
-                    clap::SubCommand::with_name("ls")
-                        .about("List files managed by mona")
-                        .version("0.0.1"))
-                .subcommand(
-                    clap::SubCommand::with_name("cat")
-                        .about("Cat a file managed by mona")
-                        .version("0.0.1")
-                        .arg(clap::Arg::with_name("lookup_path")
-                             .required(true)
-                             .help("path to of file to cat")))
-                .subcommand(
-                    clap::SubCommand::with_name("rm")
-                        .about("Remove a file from mona")
-                        .version("0.0.1")
-                        .arg(clap::Arg::with_name("lookup_path")
-                             .required(true)
-                             .help("path to of file to cat"))))
-        .subcommand(
-            clap::SubCommand::with_name("pass")
-                .about("Password manager operations")
-                .subcommand(
-                    clap::SubCommand::with_name("new")
-                        .version("0.0.1")
-                        .arg(clap::Arg::with_name("lookup_path")
-                             .required(true)
-                             .help("path used for future look ups"))
-                        .arg(clap::Arg::with_name("username")
-                             .required(true)
-                             .help("username associated with new password"))
-                        .arg(clap::Arg::with_name("password")
-                             .required(true)
-                             .help("Password to store associated to this path")))
-                .subcommand(
-                    clap::SubCommand::with_name("get")
-                        .version("0.0.1")
-                        .arg(clap::Arg::with_name("lookup_path")
-                             .required(true)
-                             .help("path used for future look ups"))))
-        .subcommand(
-            clap::SubCommand::with_name("remote")
-                .about("Manage Mona's git remotes")
-                .subcommand(
-                    clap::SubCommand::with_name("add")
-                        .version("0.0.1")
-                        .arg(clap::Arg::with_name("name")
-                             .required(true)
-                             .help("Git remote name"))
-                        .arg(clap::Arg::with_name("url")
-                             .required(true)
-                             .help("URL of the git remote")))
-                .subcommand(
-                    clap::SubCommand::with_name("remove")
-                        .version("0.0.1")
-                        .arg(clap::Arg::with_name("name")
-                             .required(true)
-                             .help("Git remote name")))
-                .subcommand(
-                    clap::SubCommand::with_name("ls")
-                        .version("0.0.1"))
-                .subcommand(
-                    clap::SubCommand::with_name("get")
-                        .version("0.0.1")
-                        .arg(clap::Arg::with_name("lookup_path")
-                             .required(true)
-                             .help("path used for future look ups"))));
-
-    let matches = app
-        .get_matches_from_safe_borrow(std::env::args_os())
-        .unwrap_or_else(|e| e.exit());
-
-    let mona_home = mona_dir().expect("Unable to find Mona's root dir");
-
-    let mut sess = gitdb::crypto::Session::new();
-    
-    let db = gitdb::git_db::DB::init(&mona_home, &mut sess)
-        .expect("Failed to initialize Mona's git database");
-
-    if let Err(e) = db.sync(&mut sess) {
-        println!("Failed sync:\ncause - \t{}", e);
-    }
-
-    let cmd_res = match matches.subcommand() {
-        ("file", Some(sub_m)) => {
-            file_arg(&db, sub_m, &mut sess)
-        },
-        ("pass", Some(sub_m)) => {
-            pass_arg(&db, sub_m, &mut sess)
-        },
-        ("remote", Some(sub_m)) => {
-            remote_arg(&db, sub_m, &mut sess)
-        },
-        _ => {
-            app.print_help()
-                .map_err(|e| format!("Failed printing help: {:?}", e))
-                .and_then(|_| Ok(println!("")))
+        Err(e) => {
+            println!("Error! {:?}", e);
+            println!("\
+!! Tried to load mona data from {:?}
+!!
+!! Are you new to mona? to get started run:
+!!   `mona init`
+!!
+!! If you've setup mona syncing with git elsewhere, run:
+!!   `mona init-from-remote <git-repo-url>`", mona_root);
+            std::process::exit(1)
         }
     };
 
-    if let Err(s) = cmd_res {
-        println!("{}", s);
+    let entropy = match gitdb::crypto::read_entropy_file(&mona_root) {
+        Ok(e) => e,
+        Err(_) => {
+            println!("Your entropy file is missing");
+            std::process::exit(1)
+        }
+    };
+
+    let salt = match db.salt() {
+        Ok(s) => s,
+        Err(_) => {
+            println!("Your database salt is missing");
+            std::process::exit(1)
+        }
+    };
+    
+
+    let kdf = gitdb::crypto::KDF {
+        pbkdf2_iters: 100_000,
+        salt: salt,
+        entropy: entropy
+    };
+
+    let pass = read_stdin("enter master passphrase")
+        .expect("Failed to read pass");
+    let sess = gitdb::Session {
+        site_id: 1,
+        master_key: kdf.master_key(pass.as_bytes())
+    };
+
+    (db, sess)
+}
+
+fn format_cred(cred: &Account, show_pass: bool) -> Vec<String> {
+    let pass: String = if show_pass {
+        cred.pass.clone()
+    } else {
+        cred.pass.chars()
+            .map(|_| '░').collect()
+    };
+
+    let mut cred_strs = Vec::new();
+    cred_strs.push(format!("user: {}", cred.user));
+    cred_strs.push(format!("pass: {}", pass));
+    term_graphics::boxed(&cred_strs, 1)
+}
+
+fn format_account(name: &str, acc_set: &Set<gitdb::Prim>, all: bool) -> Result<Vec<String>>{
+    let mut strs: Vec<String> = Vec::with_capacity(1 + acc_set.len());
+    strs.push(String::from(name));
+    
+    if all {
+        for prim in acc_set.iter() {
+            let bytes = prim.to_bytes()?;
+            let account: Account = rmp_serde::from_slice(&bytes)?;
+            strs.extend(format_cred(&account, false).iter().cloned());
+        }
     }
+
+    Ok(term_graphics::boxed(&strs, 0))
+}
+
+fn main() -> Result<()> {
+    let mut app = clap::App::new("mona")
+        .version("0.1.0")
+        .about("a less nosy password manager")
+        .subcommand(
+            clap::SubCommand::with_name("init")
+                .about("Initialize a brand new mona instance")
+        )
+        .subcommand(
+            clap::SubCommand::with_name("ls")
+                .about("List accounts")
+                .arg(clap::Arg::with_name("all")
+                     .short("a")
+                     .long("all")
+                     .help("Display credentials under each account")
+                     .takes_value(false)
+                )
+        )
+        .subcommand(
+            clap::SubCommand::with_name("new")
+                .about("Create a new account entry")
+                .arg(clap::Arg::with_name("account")
+                     .required(true)
+                     .help("Name of the account (usually website name)")
+                )
+        )
+        .subcommand(
+            clap::SubCommand::with_name("q")
+                .about("Query for accounts and credentials")
+                .arg(clap::Arg::with_name("account-query")
+                     .help("Display accounts matching this query")
+                     .takes_value(true)
+                )
+                .arg(clap::Arg::with_name("user-query")
+                     .help("Display users in the given accounts matching a query")
+                     .takes_value(true)
+                )
+        );
+
+    let matches_res = app.get_matches_from_safe_borrow(std::env::args_os());
+    let matches = match matches_res {
+        Ok(matches) => matches,
+        Err(e) =>  {
+            println!("{}", e.message);
+            std::process::exit(1);
+        }
+    };
+
+    let mona_root = default_mona_root()?;
+    match matches.subcommand() {
+        ("init", Some(_)) => {
+            init(&mona_root)?;
+        },
+        ("new", Some(sub_match)) => {
+            let (db, sess) = open_db(&mona_root);
+            let acc_name = sub_match.value_of("account").unwrap(); // required
+            let acc_key = format!("mona/accounts/{}", acc_name);
+            let mut acc_set = match db.read_block(&acc_key, &sess) {
+                Ok(block) => block.to_set()?,
+                Err(gitdb::Error::NotFound) => gitdb::ditto::Set::new(),
+                Err(e) => Err(e)?
+                    
+            };
+
+            if acc_set.len() > 0 {
+                println!("!! Existing credentials under {}:", acc_name);
+                let lines = format_account(&acc_name, &acc_set, true)?;
+                println!("{}", lines.join("\n"));
+            }
+
+            println!("!! Adding a new credential to {}", acc_name);
+            let user = read_stdin("user")?.to_string();
+            let pass = read_stdin("pass")?.to_string();
+            let account = Account { user: user, pass: pass };
+            let bytes = rmp_serde::to_vec(&account)?;
+            acc_set.insert(bytes.into(), sess.site_id);
+            let block = gitdb::Block::Set(acc_set);
+            db.write_block(&acc_key, &block, &sess)?;
+        },
+        ("ls", Some(sub_match)) => {
+            let (db, sess) = open_db(&mona_root);
+            let all = sub_match.occurrences_of("all") > 0;
+
+            let prefix = "mona/accounts/";
+            let mut accounts: Vec<Vec<String>> = Vec::new();
+            for (key, account)  in db.prefix_scan(&prefix, &sess)? {
+                let account_name = &key[prefix.len()..];
+                let lines = format_account(&account_name, &account.to_set()?, all)?;
+                accounts.push(lines);
+            }
+            let mut strs = Vec::new();
+            for account_lines in accounts.iter() {
+                assert_ne!(account_lines.len(), 0);
+                strs.extend(account_lines.iter().cloned());
+            }
+            println!("{}", strs.join("\n"));
+        },
+        ("q", Some(sub_match)) => {
+            let (db, sess) = open_db(&mona_root);
+            let acc_query = sub_match.value_of("account-query").unwrap(); // required
+            let user_query = sub_match.value_of("user-query").unwrap_or("");
+
+            let prefix = "mona/accounts/";
+            let mut lines: Vec<String> = Vec::new();
+            for (key, account)  in db.prefix_scan(&prefix, &sess)? {
+                let account_name = &key[prefix.len()..];
+                if !account_name.contains(&acc_query) {
+                    continue;
+                }
+                let mut account_strs: Vec<String> = Vec::new();
+                account_strs.push(account_name.to_string());
+
+                let acc_set = account.to_set()?;
+                for cred_prim in acc_set.iter() {
+                    let cred: Account = rmp_serde::from_slice(&cred_prim.to_bytes()?)?;
+                    if cred.user.contains(user_query) {
+                        account_strs.extend(format_cred(&cred, true).iter().cloned());
+                    }
+                }
+                lines.extend(term_graphics::boxed(&account_strs, 0).iter().cloned());
+            }
+            println!("{}", lines.join("\n"));
+        },
+        (_, None) => {
+            let args: Vec<String> = std::env::args().into_iter().skip(1).collect();
+            println!("no subcommand: {:?}", args);
+        },
+        _ => panic!("unexpected state")
+    };
+    Ok(())
 }
