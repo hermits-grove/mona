@@ -1,3 +1,22 @@
+# Building
+
+Assuming you have this structure:
+```
+<projects_dir>
+...
+├── mona
+│   ├── cli
+...     └── ...
+```
+
+you'll need these repos cloned into `<projects_dir>` to build `mona/cli`
+```
+https://github.com/the-gitdb-cooperative/gitdb
+https://github.com/davidrusu/ditto
+```
+
+This is because we currently are using a fork of ditto in gitdb. Hopefully that will change soon.
+
 # sketch
 
 #### onboarding
