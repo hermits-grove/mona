@@ -55,7 +55,7 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 
 [[package]]
 name = "clap"
-version = "2.31.1"
+version = "2.31.2"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 dependencies = [
  "ansi_term 0.11.0 (registry+https://github.com/rust-lang/crates.io-index)",
@@ -281,8 +281,9 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 name = "mona"
 version = "0.1.0"
 dependencies = [
- "clap 2.31.1 (registry+https://github.com/rust-lang/crates.io-index)",
+ "clap 2.31.2 (registry+https://github.com/rust-lang/crates.io-index)",
  "gitdb 0.1.1",
+ "rmp-serde 0.13.7 (registry+https://github.com/rust-lang/crates.io-index)",
  "serde 1.0.62 (registry+https://github.com/rust-lang/crates.io-index)",
  "serde_derive 1.0.27 (registry+https://github.com/rust-lang/crates.io-index)",
  "toml 0.4.5 (registry+https://github.com/rust-lang/crates.io-index)",
@@ -685,7 +686,7 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 "checksum byteorder 1.2.3 (registry+https://github.com/rust-lang/crates.io-index)" = "74c0b906e9446b0a2e4f760cdb3fa4b2c48cdc6db8766a845c54b6ff063fd2e9"
 "checksum cc 1.0.4 (registry+https://github.com/rust-lang/crates.io-index)" = "deaf9ec656256bb25b404c51ef50097207b9cbb29c933d31f92cae5a8a0ffee0"
 "checksum cfg-if 0.1.2 (registry+https://github.com/rust-lang/crates.io-index)" = "d4c819a1287eb618df47cc647173c5c4c66ba19d888a6e50d605672aed3140de"
-"checksum clap 2.31.1 (registry+https://github.com/rust-lang/crates.io-index)" = "5dc18f6f4005132120d9711636b32c46a233fad94df6217fa1d81c5e97a9f200"
+"checksum clap 2.31.2 (registry+https://github.com/rust-lang/crates.io-index)" = "f0f16b89cbb9ee36d87483dc939fe9f1e13c05898d56d7b230a0d4dff033a536"
 "checksum cmake 0.1.29 (registry+https://github.com/rust-lang/crates.io-index)" = "56d741ea7a69e577f6d06b36b7dff4738f680593dc27a701ffa8506b73ce28bb"
 "checksum crossbeam-deque 0.2.0 (registry+https://github.com/rust-lang/crates.io-index)" = "f739f8c5363aca78cfb059edf753d8f0d36908c348f3d8d1503f03d8b75d9cf3"
 "checksum crossbeam-epoch 0.3.0 (registry+https://github.com/rust-lang/crates.io-index)" = "59796cc6cbbdc6bb319161349db0c3250ec73ec7fcb763a51065ec4e2e158552"

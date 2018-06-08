@@ -111,13 +111,13 @@ file/scuttlebutt/main persona
 #### write
 
 ```
-> mona new reddit.com/davidrusu
+> mona new reddit.com
 user: davidrusu
 pass: eyH042QTQ6bI
 extra fields? (enter to skip): 
 
 > mona reddit
-reddit.com/davidrusu
+reddit.com
 ├── user: davidrusu
 └── pass: eyH042QTQ6bI
 
