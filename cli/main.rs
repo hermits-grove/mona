@@ -181,22 +181,25 @@ fn format_cred(cred: &Account, show_pass: bool) -> Vec<String> {
     let mut cred_strs = Vec::new();
     cred_strs.push(format!("user: {}", cred.user));
     cred_strs.push(format!("pass: {}", pass));
-    term_graphics::boxed(&cred_strs, 1)
+    cred_strs
 }
 
 fn format_account(name: &str, acc_set: &Set<gitdb::Prim>, all: bool) -> Result<Vec<String>>{
-    let mut strs: Vec<String> = Vec::with_capacity(1 + acc_set.len());
-    strs.push(String::from(name));
+    let mut boxes: Vec<Vec<String>> = Vec::with_capacity(1 + acc_set.len());
     
     if all {
         for prim in acc_set.iter() {
             let bytes = prim.to_bytes()?;
             let account: Account = rmp_serde::from_slice(&bytes)?;
-            strs.extend(format_cred(&account, false).iter().cloned());
+            boxes.push(format_cred(&account, false));
         }
     }
 
-    Ok(term_graphics::boxed(&strs, 0))
+    let mut lines = vec![String::from(name)];
+    if boxes.len() > 0 {
+        lines.extend(term_graphics::list_of_boxes(&boxes, 1).iter().cloned());
+    }
+    Ok(term_graphics::boxed(&lines, 0))
 }
 
 fn main() -> Result<()> {
@@ -323,17 +326,18 @@ fn main() -> Result<()> {
                 if !account_name.contains(&acc_query) {
                     continue;
                 }
-                let mut account_strs: Vec<String> = Vec::new();
-                account_strs.push(account_name.to_string());
+                let mut account_boxes: Vec<Vec<String>> = Vec::new();
 
                 let acc_set = account.to_set()?;
                 for cred_prim in acc_set.iter() {
                     let cred: Account = rmp_serde::from_slice(&cred_prim.to_bytes()?)?;
                     if cred.user.contains(user_query) {
-                        account_strs.extend(format_cred(&cred, true).iter().cloned());
+                        account_boxes.push(format_cred(&cred, true));
                     }
                 }
-                lines.extend(term_graphics::boxed(&account_strs, 0).iter().cloned());
+                let mut account_lines = vec![account_name.to_string()];
+                account_lines.extend(term_graphics::list_of_boxes(&account_boxes, 1).iter().cloned());
+                lines.extend(term_graphics::boxed(&account_lines, 0).iter().cloned());
             }
             println!("{}", lines.join("\n"));
         },
