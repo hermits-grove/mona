@@ -170,16 +170,36 @@ fn open_db(mona_root: &Path) -> (gitdb::DB, gitdb::Session) {
     (db, sess)
 }
 
+fn truncate(s: &str) -> String{
+    let max_len = 32;
+    let truncated = if s.chars().count() > max_len {
+        let mut temp: String = s.chars().take(max_len - 1).collect();
+        temp.push('⋯');
+        temp
+    } else {
+        s.to_string()
+    };
+    truncated
+}
+
 fn format_cred(cred: &Account, show_pass: bool) -> Vec<String> {
     let pass: String = if show_pass {
         cred.pass.clone()
     } else {
-        cred.pass.chars()
-            .map(|_| '░').collect()
+        let mut pass: String = cred.pass.chars()
+            .map(|_| '░').collect();
+        pass = truncate(&pass);
+        pass
+    };
+
+    let user = if !show_pass {
+        truncate(&cred.user)
+    } else {
+        cred.user.clone()
     };
 
     let mut cred_strs = Vec::new();
-    cred_strs.push(format!("user: {}", cred.user));
+    cred_strs.push(format!("user: {}", user));
     cred_strs.push(format!("pass: {}", pass));
     cred_strs
 }
@@ -195,11 +215,11 @@ fn format_account(name: &str, acc_set: &Set<gitdb::Prim>, all: bool) -> Result<V
         }
     }
 
-    let mut lines = vec![String::from(name)];
+    let mut lines = vec![truncate(&name)];
     if boxes.len() > 0 {
         lines.extend(term_graphics::list_of_boxes(&boxes, 1).iter().cloned());
     }
-    Ok(term_graphics::boxed(&lines, 0))
+    Ok(lines)
 }
 
 fn main() -> Result<()> {
@@ -307,11 +327,7 @@ fn main() -> Result<()> {
                 let lines = format_account(&account_name, &account.to_set()?, all)?;
                 accounts.push(lines);
             }
-            let mut strs = Vec::new();
-            for account_lines in accounts.iter() {
-                assert_ne!(account_lines.len(), 0);
-                strs.extend(account_lines.iter().cloned());
-            }
+            let mut strs = term_graphics::list_of_boxes(&accounts, 0);
             println!("{}", strs.join("\n"));
         },
         ("q", Some(sub_match)) => {
