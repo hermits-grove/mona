@@ -222,69 +222,7 @@ fn format_account(name: &str, acc_set: &Set<gitdb::Prim>, all: bool) -> Result<V
     Ok(lines)
 }
 
-fn main() -> Result<()> {
-    let mut app = clap::App::new("mona")
-        .version("0.1.0")
-        .about("a less nosy password manager")
-        .subcommand(
-            clap::SubCommand::with_name("init")
-                .about("Initialize a brand new mona instance")
-        )
-        .subcommand(
-            clap::SubCommand::with_name("ls")
-                .about("List accounts")
-                .arg(clap::Arg::with_name("all")
-                     .short("a")
-                     .long("all")
-                     .help("Display credentials under each account")
-                     .takes_value(false)
-                )
-        )
-        .subcommand(
-            clap::SubCommand::with_name("new")
-                .about("Create a new account entry")
-                .arg(clap::Arg::with_name("account")
-                     .required(true)
-                     .help("Name of the account (usually website name)")
-                )
-        )
-        .subcommand(
-            clap::SubCommand::with_name("q")
-                .about("Query for accounts and credentials")
-                .arg(clap::Arg::with_name("account-query")
-                     .help("Display accounts matching this query")
-                     .takes_value(true)
-                )
-                .arg(clap::Arg::with_name("user-query")
-                     .help("Display users in the given accounts matching a query")
-                     .takes_value(true)
-                )
-        )
-        .subcommand(
-            clap::SubCommand::with_name("import")
-                .about("import passwords from another password manager")
-                .arg(clap::Arg::with_name("source")
-                     .help("password manager your importing from")
-                     .takes_value(true)
-                     .required(true)
-                     .possible_values(&["lastpass"])
-                )
-                .arg(clap::Arg::with_name("data-file")
-                     .help("path to file storing the exported passwords (file format varies by source)")
-                     .takes_value(true)
-                     .required(true)
-                )
-        );
-
-    let matches_res = app.get_matches_from_safe_borrow(std::env::args_os());
-    let matches = match matches_res {
-        Ok(matches) => matches,
-        Err(e) =>  {
-            println!("{}", e.message);
-            std::process::exit(1);
-        }
-    };
-
+fn handle_arg_matches<'a>(matches: &clap::ArgMatches<'a>) -> Result<()> {
     let mona_root = default_mona_root()?;
     match matches.subcommand() {
         ("init", Some(_)) => {
@@ -392,11 +330,78 @@ fn main() -> Result<()> {
                 }
             }
         },
-        (_, None) => {
+        (s, None) => {
             let args: Vec<String> = std::env::args().into_iter().skip(1).collect();
-            println!("no subcommand: {:?}", args);
+            println!("no subcommand: '{}' {:?}", s, args);
         },
         _ => panic!("unexpected state")
     };
+    Ok(())
+}
+
+fn main() -> Result<()> {
+    let mut app = clap::App::new("mona")
+        .version("0.1.0")
+        .about("a less nosy password manager")
+        .subcommand(
+            clap::SubCommand::with_name("init")
+                .about("Initialize a brand new mona instance")
+        )
+        .subcommand(
+            clap::SubCommand::with_name("ls")
+                .about("List accounts")
+                .arg(clap::Arg::with_name("all")
+                     .short("a")
+                     .long("all")
+                     .help("Display credentials under each account")
+                     .takes_value(false)
+                )
+        )
+        .subcommand(
+            clap::SubCommand::with_name("new")
+                .about("Create a new account entry")
+                .arg(clap::Arg::with_name("account")
+                     .required(true)
+                     .help("Name of the account (usually website name)")
+                )
+        )
+        .subcommand(
+            clap::SubCommand::with_name("q")
+                .about("Query for accounts and credentials")
+                .arg(clap::Arg::with_name("account-query")
+                     .help("Display accounts matching this query")
+                     .takes_value(true)
+                )
+                .arg(clap::Arg::with_name("user-query")
+                     .help("Display users in the given accounts matching a query")
+                     .takes_value(true)
+                )
+        )
+        .subcommand(
+            clap::SubCommand::with_name("import")
+                .about("import passwords from another password manager")
+                .arg(clap::Arg::with_name("source")
+                     .help("password manager your importing from")
+                     .takes_value(true)
+                     .required(true)
+                     .possible_values(&["lastpass"])
+                )
+                .arg(clap::Arg::with_name("data-file")
+                     .help("path to file storing the exported passwords (file format varies by source)")
+                     .takes_value(true)
+                     .required(true)
+                )
+        );
+
+    let matches_res = app.get_matches_from_safe_borrow(std::env::args_os());
+    match matches_res {
+        Ok(matches) => handle_arg_matches(&matches),
+        Err(e) =>  {
+            println!("{}", e.message);
+            println!("Exiting");
+            std::process::exit(1);
+        }
+    }?;
+
     Ok(())
 }
