@@ -1,19 +1,31 @@
 {
   "manifest_version": 2,
-  "name": "Mona",
-  "version": "1.0",
-
-  "description": "Password Managers minus Trust",
+  "name": "mona",
+  "version": "0.1",
+  "description": "A less nosy password manager",
 
   "icons": {
     "48": "icons/mona-48.png"
   },
 
-  "content_scripts": [
-    {
-      "matches": ["*"],
-      "js": ["bundle.js"]
-    }
-  ]
+  "background": {
+    "scripts": [
+      "index.js"
+    ]
+  },
 
+  "permissions": ["nativeMessaging"],
+
+  "applications": {
+    "gecko": {
+      "id": "mona@the-gitdb-cooperative.org",
+      "strict_min_version": "50.0"
+    }
+  },
+
+  "browser_action": {
+    "default_icon": "icons/mona-32.png",
+    "default_title": "mona",
+    "default_popup": "popup/mona.html"
+  }
 }

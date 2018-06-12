@@ -9,17 +9,15 @@
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/strong-box/mona.git"
+    "url": "git+https://github.com/the-gitdb-cooperative/mona.git"
   },
   "author": "",
-  "license": "ISC",
+  "license": "GPLv2",
   "bugs": {
-    "url": "https://github.com/strong-box/mona/issues"
+    "url": "https://github.com/the-gitdb-cooperative/mona/issues"
   },
-  "homepage": "https://github.com/strong-box/mona#readme",
+  "homepage": "https://github.com/the-gitdb-cooperative/mona#readme",
   "dependencies": {
-    "js-git": "^0.7.8",
-    "openpgp": "^2.6.2"
   },
   "devDependencies": {
     "webpack": "^3.11.0"

@@ -1,0 +1,209 @@
+html {
+    font-family: 'Open Sans', sans-serif;
+    font-size: 12pt;
+    height: 400px;
+}
+
+body {
+    margin: 0px;
+    text-align: center;
+    height: 100vh;
+    width: 300px;
+    overflow: hidden;
+}
+
+.logged_out_prompt {
+    position: absolute;
+    top: 50%;
+    width: 100%;
+}
+
+.logged_in_main {
+    position: absolute;
+    top: 0px;
+    width: 100%;
+    height: 100%;
+}
+
+.greeting {
+    padding: 12px;
+}
+
+.image {
+    position: absolute;
+    z-index: -1;
+    width: 100%;
+    height: 100%;
+    background: url("https://uploads2.wikiart.org/images/mikalojus-ciurlionis/castle-castle-fairy-tale-1909.jpg") no-repeat center center fixed;
+    background-size: cover;
+}
+
+.logo {
+    font-family: 'Pacifico', cursive;
+    line-height: 100%;
+    font-size: 54pt;
+    color: white;
+    text-shadow: 3px 4px 4px #000000;
+}
+
+.tagline {
+    padding-top: 5px;
+    color: white;
+    text-shadow: 1px 2px 2px #000000;
+}
+
+.groups {
+    position: relative;
+    padding: 0px;
+    height: calc(100vh - 32px);
+    overflow: scroll;
+}
+
+.group_name {
+    margin: 3px;
+}
+.account_name {
+    margin-left: 3px;
+}
+
+.translucent_panel {
+    position: relative;
+    background-color: rgba(255, 255, 255, 0.5);
+    padding: 6px;
+    border-radius: 2px;
+    margin: 3px;
+}
+
+.account {
+    background-color: white;
+    border-radius: 2px;
+    margin: 1px;
+    padding: 3px;
+}
+
+.account_thumbnail {
+    display: inline-block;
+    width: 24px;
+    height: 24px;
+    border-radius: 100%;
+    background-color: black;
+    vertical-align: middle;
+}
+.account_name {
+    display: inline-block;
+}
+
+.passprompt {
+    background-color: rgba(255, 255, 255, 0.5);
+    width: 100%;
+    height: 32px;
+    padding: 3px 0px;
+    text-align: left;
+}
+
+.passinput {
+    border-radius: 2px;
+    border: none;
+    height: 100%;
+    display: inline-block;
+    text-align: center;
+    position: relative;
+    margin-left: 3px;
+    width: calc(100% - 41px);
+}
+
+.passbtn {
+    display: inline-block;
+    vertical-align: middle;
+    height: 100%;
+    padding: 0px 3px;
+}
+
+.passbtn:hover {
+    filter: saturate(120%) drop-shadow(0.5px 1px 1px rgba(0, 0, 0, 0.1));
+}
+
+.passbtn:active {
+    filter: saturate(150%);
+}
+
+.hidden {
+    display: none;
+}
+
+@keyframes animate_away {
+    from {
+	padding-top: 0%;
+    }
+    to {
+	padding-top: 100%;
+    }
+}
+
+@keyframes animate_in {
+    from {
+	top: -500px;
+    }
+    to {
+	top: 0px;
+    }
+}
+
+@keyframes blur_away {
+    from {
+	filter: blur(0px);
+    }
+    to {
+	filter: blur(4px);
+    }
+}
+
+@keyframes shake {
+  10%, 90% {
+    transform: translate3d(-1px, 0, 0);
+  }
+
+  20%, 80% {
+    transform: translate3d(2px, 0, 0);
+  }
+
+  30%, 50%, 70% {
+    transform: translate3d(-4px, 0, 0);
+  }
+
+  40%, 60% {
+    transform: translate3d(4px, 0, 0);
+  }
+}
+
+.animate_away {
+    position: fixed;
+    animation-name: animate_away;
+    animation-duration: 500ms;
+    animation-timing-function: cubic-bezier(0.165, 0.84, 0.44, 1);
+    animation-fill-mode: forwards;
+}
+
+.animate_in {
+    position: fixed;
+    animation-name: animate_in;
+    animation-duration: 250ms;
+    animation-timing-function: cubic-bezier(0.165, 0.84, 0.44, 1);
+    animation-fill-mode: forwards;
+}
+
+.animate_blur {
+    animation-name: blur_away;
+    animation-duration: 1000ms;
+    animation-timing-function: cubic-bezier(0.25, 0.46, 0.45, 0.94);
+    animation-fill-mode: forwards;
+}
+
+.wiggle {
+    animation: shake 0.5s cubic-bezier(.36,.07,.19,.97) both;
+    translate: translate3d(0, 0, 0);
+}
+
+.bad_input {
+    border: 1px solid rgba(158, 48, 59, 1);
+}
