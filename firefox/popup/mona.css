@@ -1,6 +1,6 @@
 html {
     font-family: 'Open Sans', sans-serif;
-    font-size: 12pt;
+    font-size: 10pt;
     height: 400px;
 }
 
@@ -75,20 +75,43 @@ body {
 }
 
 .account {
-    background-color: white;
+    background-color: rgba(255, 255, 255, 0.75);
     border-radius: 2px;
-    margin: 1px;
-    padding: 3px;
+    margin: 2px;
+    padding: 2px;
 }
 
 .account_thumbnail {
     display: inline-block;
     width: 24px;
     height: 24px;
-    border-radius: 100%;
-    background-color: black;
+    border-radius: 2px;
     vertical-align: middle;
 }
+
+.account_cred {
+    background-color: rgba(255, 255, 255, 0.5);
+    margin-top: 2px;
+    border-radius: 2px;
+    padding: 2px;
+}
+
+.cred_label {
+    display: inline-block;
+    vertical-align: middle;
+}
+.cred_val {
+    background-color: rgba(255, 255, 255);
+    display: inline-block;
+    padding: 3px;
+    border-radius: 2px;
+    margin: 2px;
+    max-width: 200px;
+    overflow: scroll;
+    white-space: nowrap;
+    vertical-align: middle;
+}
+
 .account_name {
     display: inline-block;
 }
@@ -176,6 +199,18 @@ body {
   }
 }
 
+@keyframes glow {
+    0% {
+	filter: saturate(100%);
+    }
+    50%{
+	filter: saturate(150%);
+    }
+    0% {
+	filter: saturate(100%);
+    }
+}
+
 .animate_away {
     position: fixed;
     animation-name: animate_away;
@@ -194,7 +229,7 @@ body {
 
 .animate_blur {
     animation-name: blur_away;
-    animation-duration: 1000ms;
+    animation-duration: 3000ms;
     animation-timing-function: cubic-bezier(0.25, 0.46, 0.45, 0.94);
     animation-fill-mode: forwards;
 }
@@ -206,4 +241,13 @@ body {
 
 .bad_input {
     border: 1px solid rgba(158, 48, 59, 1);
+}
+
+.waiting {
+    animation: glow 1000ms;
+    animation-iteration-count: infinite;
+    background: url("../icons/mona-48.png") no-repeat center center;
+    background-size: 32px;
+    min-height: 32px;
+    min-width: 32px;
 }

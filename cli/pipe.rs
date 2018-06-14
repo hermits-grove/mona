@@ -7,23 +7,34 @@ extern crate gitdb;
 extern crate base64;
 
 mod error;
+mod account;
 mod core;
-
 use std::io::{self, Read, Write};
 
-use error::Result;
+use error::{Result, Error};
+use account::Account;
 use core::State;
 
 #[derive(Debug, Deserialize)]
 enum Cmd {
     Login {
         pass: String
+    },
+    AccountQuery {
+        query: String
+    },
+    GetAccount {
+        account: String
     }
 }
 
 #[derive(Debug, Serialize)]
 enum Response {
+    NotInitialized, // returned if a request is made before a successfull login
     Login { success: bool },
+    AccountQuery { results: Vec<String> },
+    GetAccount { account: String, creds: Vec<Account> },
+    NoAccount { account: String },
     UnknownError { msg: String }
 }
 
@@ -56,26 +67,69 @@ fn send(msg: impl serde::Serialize) -> Result<()>{
     Ok(())
 }
 
+fn login(pass: &str) -> Result<Option<State>> {
+    let root = &core::default_root()?;
+    let state = match State::init(&root, pass.as_bytes()) {
+        Ok(s) => {
+            if let Ok(()) = s.validate_encryption_key() {
+                send(Response::Login{ success: true })?;
+                Some(s)
+            } else {
+                send(Response::Login{ success: false })?;
+                None
+            }
+        },
+        Err(e) => {
+            eprintln!("Failed in login attempt: {}", e);
+            send(Response::UnknownError {
+                msg: "Failed login, inspect logs".into()
+            })?;
+            None
+        }
+    };
+    Ok(state)
+}
+
 fn main() -> Result<()> {
     let mut state: Option<State> = None;
-    let root = &core::default_root()?;
     loop {
         eprintln!("loop");
         match recv()? {
             Cmd::Login { pass } => {
-                match State::init(&root, pass.as_bytes()) {
-                    Ok(s) => {
-                        if let Ok(()) = s.validate_encryption_key() {
-                            state = Some(s);
-                            send(Response::Login{ success: true })?;
-                        } else {
-                            send(Response::Login{ success: false })?;
+                state = login(&pass)?;
+            },
+            Cmd::AccountQuery { query } => {
+                if let Some(ref s) = state {
+                    send(Response::AccountQuery {
+                        results: s.account_query(query)?.collect()
+                    })?;
+                } else {
+                    send(Response::NotInitialized)?;
+                }
+            },
+            Cmd::GetAccount { account } => {
+                if let Some(ref s) = state {
+                    match s.account(&account) {
+                        Ok(creds) => {
+                            send(Response::GetAccount {
+                                account: account,
+                                creds: creds
+                            })?;
+                        },
+                        Err(Error::Gitdb(gitdb::Error::NotFound)) => {
+                            send(Response::NoAccount {
+                                account: account
+                            })?;
+                        },
+                        Err(e) => {
+                            eprintln!("Failed GetAccount {}: {}", account, e);
+                            send(Response::UnknownError {
+                                msg: "Failed to GetAccount, inspect logs".into()
+                            })?;
                         }
-                    },
-                    Err(e) => {
-                        eprintln!("Failed in login attempt: {}", e);
-                        send(Response::UnknownError { msg: "Failed login, inspect logs".into() })?;
                     }
+                } else {
+                    send(Response::NotInitialized)?;
                 }
             }
         }

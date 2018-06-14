@@ -4,9 +4,12 @@ extern crate clap;
 extern crate gitdb;
 extern crate rmp_serde;
 extern crate csv;
+extern crate url;
 
 use std::path::Path;
 use std::io::Write;
+
+use url::Url;
 
 use gitdb::ditto::{Set};
 
@@ -223,7 +226,6 @@ fn handle_arg_matches<'a>(matches: &clap::ArgMatches<'a>) -> Result<()> {
         ("q", Some(sub_match)) => {
             let state = open_db(&mona_root);
             let acc_query = sub_match.value_of("account-query").unwrap(); // required
-            let user_query = sub_match.value_of("user-query").unwrap_or("");
 
             let prefix = "mona/accounts/";
             let mut lines: Vec<String> = Vec::new();
@@ -237,9 +239,7 @@ fn handle_arg_matches<'a>(matches: &clap::ArgMatches<'a>) -> Result<()> {
                 let acc_set = account.to_set()?;
                 for cred_prim in acc_set.iter() {
                     let cred: Account = rmp_serde::from_slice(&cred_prim.to_bytes()?)?;
-                    if cred.user.contains(user_query) {
-                        account_boxes.push(format_cred(&cred, true));
-                    }
+                    account_boxes.push(format_cred(&cred, true));
                 }
                 let mut account_lines = vec![account_name.to_string()];
                 account_lines.extend(term_graphics::list_of_boxes(&account_boxes, 1).iter().cloned());
@@ -257,21 +257,46 @@ fn handle_arg_matches<'a>(matches: &clap::ArgMatches<'a>) -> Result<()> {
                     for record in rdr.deserialize() {
                         let record: LastPassRecord = record?;
                         match record {
-                            LastPassRecord { username: Some(ref u), password: Some(ref p), name: Some(ref n), ..} => {
-                                let acc_key = format!("mona/accounts/{}", n);
+                            LastPassRecord { username, password: Some(p), name, url, ..} => {
+                                let user: String = if let Some(user) = username {
+                                    user.clone()
+                                } else {
+                                    String::from("No username (from lastpass import)")
+                                };
+
+                                let generated_pass_pre = "Generated Password for ";
+                                let name = if let Some(n) = name {
+                                    if n.starts_with(&generated_pass_pre) {
+                                        String::from(&n[generated_pass_pre.len()..]) // strip prefix
+                                    } else {
+                                        n.clone()
+                                    }
+                                } else {
+                                    url.and_then(|u| {
+                                        if let Ok(parsed) = Url::parse(&u) {
+                                            parsed.host()
+                                                .map(|host| format!("{}", host))
+                                        } else {
+                                            None
+                                        }
+                                    }).unwrap_or(
+                                        String::from("No account name (from lastpass import)")
+                                    )
+                                };
+                                let acc_key = format!("mona/accounts/{}", name);
                                 let mut acc_set = match state.db.read_block(&acc_key, &state.sess) {
                                     Ok(block) => block.to_set()?,
                                     Err(gitdb::Error::NotFound) => gitdb::ditto::Set::new(),
                                     Err(e) => Err(e)?
                                 };
-                                let cred = Account { user: u.to_string(), pass: p.to_string() };
+                                let cred = Account { user: user.to_string(), pass: p.to_string() };
                                 let bytes = rmp_serde::to_vec(&cred)?;
                                 acc_set.insert(bytes.into(), state.sess.site_id);
                                 let block = gitdb::Block::Set(acc_set);
                                 state.db.write_block(&acc_key, &block, &state.sess)?;
                             },
                             rec => {
-                                println!("Missing user, pass or name, Skipping!!");
+                                println!("Missing password, Skipping!!");
                                 println!("{:?}", rec);
                             }
                         }
@@ -322,10 +347,6 @@ fn main() -> Result<()> {
                 .about("Query for accounts and credentials")
                 .arg(clap::Arg::with_name("account-query")
                      .help("Display accounts matching this query")
-                     .takes_value(true)
-                )
-                .arg(clap::Arg::with_name("user-query")
-                     .help("Display users in the given accounts matching a query")
                      .takes_value(true)
                 )
         )

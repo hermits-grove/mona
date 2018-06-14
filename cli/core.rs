@@ -1,8 +1,10 @@
+extern crate rmp_serde;
 extern crate gitdb;
 
 use std;
 
 use error::Result;
+use account::Account;
 
 pub struct State {
     pub db: gitdb::DB,
@@ -34,6 +36,27 @@ impl State {
         // attempt to decrypt the key salt with the current session
         self.db.key_salt(&self.sess)?;
         Ok(())
+    }
+
+    pub fn account_query(&self, q: String) -> Result<impl Iterator<Item=String>> {
+        let prefix = "mona/accounts/";
+        Ok(
+            self.db.prefix_scan(&prefix, &self.sess)
+                ?.map(move |(key, _)| String::from(&key[prefix.len()..]))
+                .filter(move |acc_name| acc_name.contains(&q))
+        )
+    }
+
+    pub fn account(&self, acc: &str) -> Result<Vec<Account>> {
+        let key = format!("mona/accounts/{}", acc);
+        let block = self.db.read_block(&key, &self.sess)?;
+        let account_set = block.to_set()?;
+        let mut creds = Vec::with_capacity(account_set.len());
+        for prim in account_set.iter() {
+            let cred: Account = rmp_serde::from_slice(&prim.to_bytes()?)?;
+            creds.push(cred);
+        }
+        Ok(creds)
     }
 }
 
