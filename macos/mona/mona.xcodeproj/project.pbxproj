@@ -1,0 +1,471 @@
+// !$*UTF8*$!
+{
+	archiveVersion = 1;
+	classes = {
+	};
+	objectVersion = 50;
+	objects = {
+
+/* Begin PBXBuildFile section */
+		C021C62F20AB881B0077BBA0 /* AppDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = C021C62E20AB881B0077BBA0 /* AppDelegate.swift */; };
+		C021C63120AB881D0077BBA0 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = C021C63020AB881D0077BBA0 /* Assets.xcassets */; };
+		C021C63420AB881D0077BBA0 /* MainMenu.xib in Resources */ = {isa = PBXBuildFile; fileRef = C021C63220AB881D0077BBA0 /* MainMenu.xib */; };
+		C021C64020AB881D0077BBA0 /* monaTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = C021C63F20AB881D0077BBA0 /* monaTests.swift */; };
+		C021C64C20AB88C60077BBA0 /* MainWindowController.swift in Sources */ = {isa = PBXBuildFile; fileRef = C021C64A20AB88C60077BBA0 /* MainWindowController.swift */; };
+		C021C64D20AB88C60077BBA0 /* MainWindowController.xib in Resources */ = {isa = PBXBuildFile; fileRef = C021C64B20AB88C60077BBA0 /* MainWindowController.xib */; };
+		C021C65020AB8E9E0077BBA0 /* AuthViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = C021C64E20AB8E9E0077BBA0 /* AuthViewController.swift */; };
+		C021C65120AB8E9E0077BBA0 /* AuthViewController.xib in Resources */ = {isa = PBXBuildFile; fileRef = C021C64F20AB8E9E0077BBA0 /* AuthViewController.xib */; };
+/* End PBXBuildFile section */
+
+/* Begin PBXContainerItemProxy section */
+		C021C63C20AB881D0077BBA0 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = C021C62320AB881B0077BBA0 /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = C021C62A20AB881B0077BBA0;
+			remoteInfo = mona;
+		};
+/* End PBXContainerItemProxy section */
+
+/* Begin PBXFileReference section */
+		C021C62B20AB881B0077BBA0 /* mona.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = mona.app; sourceTree = BUILT_PRODUCTS_DIR; };
+		C021C62E20AB881B0077BBA0 /* AppDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppDelegate.swift; sourceTree = "<group>"; };
+		C021C63020AB881D0077BBA0 /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
+		C021C63320AB881D0077BBA0 /* Base */ = {isa = PBXFileReference; lastKnownFileType = file.xib; name = Base; path = Base.lproj/MainMenu.xib; sourceTree = "<group>"; };
+		C021C63520AB881D0077BBA0 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
+		C021C63620AB881D0077BBA0 /* mona.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = mona.entitlements; sourceTree = "<group>"; };
+		C021C63B20AB881D0077BBA0 /* monaTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = monaTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
+		C021C63F20AB881D0077BBA0 /* monaTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = monaTests.swift; sourceTree = "<group>"; };
+		C021C64120AB881D0077BBA0 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
+		C021C64A20AB88C60077BBA0 /* MainWindowController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MainWindowController.swift; sourceTree = "<group>"; };
+		C021C64B20AB88C60077BBA0 /* MainWindowController.xib */ = {isa = PBXFileReference; lastKnownFileType = file.xib; path = MainWindowController.xib; sourceTree = "<group>"; };
+		C021C64E20AB8E9E0077BBA0 /* AuthViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AuthViewController.swift; sourceTree = "<group>"; };
+		C021C64F20AB8E9E0077BBA0 /* AuthViewController.xib */ = {isa = PBXFileReference; lastKnownFileType = file.xib; path = AuthViewController.xib; sourceTree = "<group>"; };
+/* End PBXFileReference section */
+
+/* Begin PBXFrameworksBuildPhase section */
+		C021C62820AB881B0077BBA0 /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		C021C63820AB881D0077BBA0 /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXFrameworksBuildPhase section */
+
+/* Begin PBXGroup section */
+		C021C62220AB881B0077BBA0 = {
+			isa = PBXGroup;
+			children = (
+				C021C62D20AB881B0077BBA0 /* mona */,
+				C021C63E20AB881D0077BBA0 /* monaTests */,
+				C021C62C20AB881B0077BBA0 /* Products */,
+			);
+			sourceTree = "<group>";
+		};
+		C021C62C20AB881B0077BBA0 /* Products */ = {
+			isa = PBXGroup;
+			children = (
+				C021C62B20AB881B0077BBA0 /* mona.app */,
+				C021C63B20AB881D0077BBA0 /* monaTests.xctest */,
+			);
+			name = Products;
+			sourceTree = "<group>";
+		};
+		C021C62D20AB881B0077BBA0 /* mona */ = {
+			isa = PBXGroup;
+			children = (
+				C021C62E20AB881B0077BBA0 /* AppDelegate.swift */,
+				C021C64A20AB88C60077BBA0 /* MainWindowController.swift */,
+				C021C64E20AB8E9E0077BBA0 /* AuthViewController.swift */,
+				C021C64F20AB8E9E0077BBA0 /* AuthViewController.xib */,
+				C021C64B20AB88C60077BBA0 /* MainWindowController.xib */,
+				C021C63020AB881D0077BBA0 /* Assets.xcassets */,
+				C021C63220AB881D0077BBA0 /* MainMenu.xib */,
+				C021C63520AB881D0077BBA0 /* Info.plist */,
+				C021C63620AB881D0077BBA0 /* mona.entitlements */,
+			);
+			path = mona;
+			sourceTree = "<group>";
+		};
+		C021C63E20AB881D0077BBA0 /* monaTests */ = {
+			isa = PBXGroup;
+			children = (
+				C021C63F20AB881D0077BBA0 /* monaTests.swift */,
+				C021C64120AB881D0077BBA0 /* Info.plist */,
+			);
+			path = monaTests;
+			sourceTree = "<group>";
+		};
+/* End PBXGroup section */
+
+/* Begin PBXNativeTarget section */
+		C021C62A20AB881B0077BBA0 /* mona */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = C021C64420AB881D0077BBA0 /* Build configuration list for PBXNativeTarget "mona" */;
+			buildPhases = (
+				C021C62720AB881B0077BBA0 /* Sources */,
+				C021C62820AB881B0077BBA0 /* Frameworks */,
+				C021C62920AB881B0077BBA0 /* Resources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+			);
+			name = mona;
+			productName = mona;
+			productReference = C021C62B20AB881B0077BBA0 /* mona.app */;
+			productType = "com.apple.product-type.application";
+		};
+		C021C63A20AB881D0077BBA0 /* monaTests */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = C021C64720AB881D0077BBA0 /* Build configuration list for PBXNativeTarget "monaTests" */;
+			buildPhases = (
+				C021C63720AB881D0077BBA0 /* Sources */,
+				C021C63820AB881D0077BBA0 /* Frameworks */,
+				C021C63920AB881D0077BBA0 /* Resources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+				C021C63D20AB881D0077BBA0 /* PBXTargetDependency */,
+			);
+			name = monaTests;
+			productName = monaTests;
+			productReference = C021C63B20AB881D0077BBA0 /* monaTests.xctest */;
+			productType = "com.apple.product-type.bundle.unit-test";
+		};
+/* End PBXNativeTarget section */
+
+/* Begin PBXProject section */
+		C021C62320AB881B0077BBA0 /* Project object */ = {
+			isa = PBXProject;
+			attributes = {
+				LastSwiftUpdateCheck = 0930;
+				LastUpgradeCheck = 0930;
+				ORGANIZATIONNAME = "David Rusu";
+				TargetAttributes = {
+					C021C62A20AB881B0077BBA0 = {
+						CreatedOnToolsVersion = 9.3.1;
+					};
+					C021C63A20AB881D0077BBA0 = {
+						CreatedOnToolsVersion = 9.3.1;
+						TestTargetID = C021C62A20AB881B0077BBA0;
+					};
+				};
+			};
+			buildConfigurationList = C021C62620AB881B0077BBA0 /* Build configuration list for PBXProject "mona" */;
+			compatibilityVersion = "Xcode 9.3";
+			developmentRegion = en;
+			hasScannedForEncodings = 0;
+			knownRegions = (
+				en,
+				Base,
+			);
+			mainGroup = C021C62220AB881B0077BBA0;
+			productRefGroup = C021C62C20AB881B0077BBA0 /* Products */;
+			projectDirPath = "";
+			projectRoot = "";
+			targets = (
+				C021C62A20AB881B0077BBA0 /* mona */,
+				C021C63A20AB881D0077BBA0 /* monaTests */,
+			);
+		};
+/* End PBXProject section */
+
+/* Begin PBXResourcesBuildPhase section */
+		C021C62920AB881B0077BBA0 /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				C021C65120AB8E9E0077BBA0 /* AuthViewController.xib in Resources */,
+				C021C63120AB881D0077BBA0 /* Assets.xcassets in Resources */,
+				C021C64D20AB88C60077BBA0 /* MainWindowController.xib in Resources */,
+				C021C63420AB881D0077BBA0 /* MainMenu.xib in Resources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		C021C63920AB881D0077BBA0 /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXResourcesBuildPhase section */
+
+/* Begin PBXSourcesBuildPhase section */
+		C021C62720AB881B0077BBA0 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				C021C64C20AB88C60077BBA0 /* MainWindowController.swift in Sources */,
+				C021C65020AB8E9E0077BBA0 /* AuthViewController.swift in Sources */,
+				C021C62F20AB881B0077BBA0 /* AppDelegate.swift in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		C021C63720AB881D0077BBA0 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				C021C64020AB881D0077BBA0 /* monaTests.swift in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXSourcesBuildPhase section */
+
+/* Begin PBXTargetDependency section */
+		C021C63D20AB881D0077BBA0 /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = C021C62A20AB881B0077BBA0 /* mona */;
+			targetProxy = C021C63C20AB881D0077BBA0 /* PBXContainerItemProxy */;
+		};
+/* End PBXTargetDependency section */
+
+/* Begin PBXVariantGroup section */
+		C021C63220AB881D0077BBA0 /* MainMenu.xib */ = {
+			isa = PBXVariantGroup;
+			children = (
+				C021C63320AB881D0077BBA0 /* Base */,
+			);
+			name = MainMenu.xib;
+			sourceTree = "<group>";
+		};
+/* End PBXVariantGroup section */
+
+/* Begin XCBuildConfiguration section */
+		C021C64220AB881D0077BBA0 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				CLANG_ANALYZER_NONNULL = YES;
+				CLANG_ANALYZER_NUMBER_OBJECT_CONVERSION = YES_AGGRESSIVE;
+				CLANG_CXX_LANGUAGE_STANDARD = "gnu++14";
+				CLANG_CXX_LIBRARY = "libc++";
+				CLANG_ENABLE_MODULES = YES;
+				CLANG_ENABLE_OBJC_ARC = YES;
+				CLANG_ENABLE_OBJC_WEAK = YES;
+				CLANG_WARN_BLOCK_CAPTURE_AUTORELEASING = YES;
+				CLANG_WARN_BOOL_CONVERSION = YES;
+				CLANG_WARN_COMMA = YES;
+				CLANG_WARN_CONSTANT_CONVERSION = YES;
+				CLANG_WARN_DEPRECATED_OBJC_IMPLEMENTATIONS = YES;
+				CLANG_WARN_DIRECT_OBJC_ISA_USAGE = YES_ERROR;
+				CLANG_WARN_DOCUMENTATION_COMMENTS = YES;
+				CLANG_WARN_EMPTY_BODY = YES;
+				CLANG_WARN_ENUM_CONVERSION = YES;
+				CLANG_WARN_INFINITE_RECURSION = YES;
+				CLANG_WARN_INT_CONVERSION = YES;
+				CLANG_WARN_NON_LITERAL_NULL_CONVERSION = YES;
+				CLANG_WARN_OBJC_IMPLICIT_RETAIN_SELF = YES;
+				CLANG_WARN_OBJC_LITERAL_CONVERSION = YES;
+				CLANG_WARN_OBJC_ROOT_CLASS = YES_ERROR;
+				CLANG_WARN_RANGE_LOOP_ANALYSIS = YES;
+				CLANG_WARN_STRICT_PROTOTYPES = YES;
+				CLANG_WARN_SUSPICIOUS_MOVE = YES;
+				CLANG_WARN_UNGUARDED_AVAILABILITY = YES_AGGRESSIVE;
+				CLANG_WARN_UNREACHABLE_CODE = YES;
+				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
+				CODE_SIGN_IDENTITY = "Mac Developer";
+				COPY_PHASE_STRIP = NO;
+				DEBUG_INFORMATION_FORMAT = dwarf;
+				ENABLE_STRICT_OBJC_MSGSEND = YES;
+				ENABLE_TESTABILITY = YES;
+				GCC_C_LANGUAGE_STANDARD = gnu11;
+				GCC_DYNAMIC_NO_PIC = NO;
+				GCC_NO_COMMON_BLOCKS = YES;
+				GCC_OPTIMIZATION_LEVEL = 0;
+				GCC_PREPROCESSOR_DEFINITIONS = (
+					"DEBUG=1",
+					"$(inherited)",
+				);
+				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
+				GCC_WARN_ABOUT_RETURN_TYPE = YES_ERROR;
+				GCC_WARN_UNDECLARED_SELECTOR = YES;
+				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
+				GCC_WARN_UNUSED_FUNCTION = YES;
+				GCC_WARN_UNUSED_VARIABLE = YES;
+				MACOSX_DEPLOYMENT_TARGET = 10.13;
+				MTL_ENABLE_DEBUG_INFO = YES;
+				ONLY_ACTIVE_ARCH = YES;
+				SDKROOT = macosx;
+				SWIFT_ACTIVE_COMPILATION_CONDITIONS = DEBUG;
+				SWIFT_OPTIMIZATION_LEVEL = "-Onone";
+			};
+			name = Debug;
+		};
+		C021C64320AB881D0077BBA0 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				CLANG_ANALYZER_NONNULL = YES;
+				CLANG_ANALYZER_NUMBER_OBJECT_CONVERSION = YES_AGGRESSIVE;
+				CLANG_CXX_LANGUAGE_STANDARD = "gnu++14";
+				CLANG_CXX_LIBRARY = "libc++";
+				CLANG_ENABLE_MODULES = YES;
+				CLANG_ENABLE_OBJC_ARC = YES;
+				CLANG_ENABLE_OBJC_WEAK = YES;
+				CLANG_WARN_BLOCK_CAPTURE_AUTORELEASING = YES;
+				CLANG_WARN_BOOL_CONVERSION = YES;
+				CLANG_WARN_COMMA = YES;
+				CLANG_WARN_CONSTANT_CONVERSION = YES;
+				CLANG_WARN_DEPRECATED_OBJC_IMPLEMENTATIONS = YES;
+				CLANG_WARN_DIRECT_OBJC_ISA_USAGE = YES_ERROR;
+				CLANG_WARN_DOCUMENTATION_COMMENTS = YES;
+				CLANG_WARN_EMPTY_BODY = YES;
+				CLANG_WARN_ENUM_CONVERSION = YES;
+				CLANG_WARN_INFINITE_RECURSION = YES;
+				CLANG_WARN_INT_CONVERSION = YES;
+				CLANG_WARN_NON_LITERAL_NULL_CONVERSION = YES;
+				CLANG_WARN_OBJC_IMPLICIT_RETAIN_SELF = YES;
+				CLANG_WARN_OBJC_LITERAL_CONVERSION = YES;
+				CLANG_WARN_OBJC_ROOT_CLASS = YES_ERROR;
+				CLANG_WARN_RANGE_LOOP_ANALYSIS = YES;
+				CLANG_WARN_STRICT_PROTOTYPES = YES;
+				CLANG_WARN_SUSPICIOUS_MOVE = YES;
+				CLANG_WARN_UNGUARDED_AVAILABILITY = YES_AGGRESSIVE;
+				CLANG_WARN_UNREACHABLE_CODE = YES;
+				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
+				CODE_SIGN_IDENTITY = "Mac Developer";
+				COPY_PHASE_STRIP = NO;
+				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
+				ENABLE_NS_ASSERTIONS = NO;
+				ENABLE_STRICT_OBJC_MSGSEND = YES;
+				GCC_C_LANGUAGE_STANDARD = gnu11;
+				GCC_NO_COMMON_BLOCKS = YES;
+				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
+				GCC_WARN_ABOUT_RETURN_TYPE = YES_ERROR;
+				GCC_WARN_UNDECLARED_SELECTOR = YES;
+				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
+				GCC_WARN_UNUSED_FUNCTION = YES;
+				GCC_WARN_UNUSED_VARIABLE = YES;
+				MACOSX_DEPLOYMENT_TARGET = 10.13;
+				MTL_ENABLE_DEBUG_INFO = NO;
+				SDKROOT = macosx;
+				SWIFT_COMPILATION_MODE = wholemodule;
+				SWIFT_OPTIMIZATION_LEVEL = "-O";
+			};
+			name = Release;
+		};
+		C021C64520AB881D0077BBA0 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				CODE_SIGN_ENTITLEMENTS = mona/mona.entitlements;
+				CODE_SIGN_STYLE = Automatic;
+				COMBINE_HIDPI_IMAGES = YES;
+				DEVELOPMENT_TEAM = LSM6JTWMAC;
+				INFOPLIST_FILE = mona/Info.plist;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/../Frameworks",
+				);
+				PRODUCT_BUNDLE_IDENTIFIER = gitdb.mona;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SWIFT_VERSION = 4.0;
+			};
+			name = Debug;
+		};
+		C021C64620AB881D0077BBA0 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				CODE_SIGN_ENTITLEMENTS = mona/mona.entitlements;
+				CODE_SIGN_STYLE = Automatic;
+				COMBINE_HIDPI_IMAGES = YES;
+				DEVELOPMENT_TEAM = LSM6JTWMAC;
+				INFOPLIST_FILE = mona/Info.plist;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/../Frameworks",
+				);
+				PRODUCT_BUNDLE_IDENTIFIER = gitdb.mona;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SWIFT_VERSION = 4.0;
+			};
+			name = Release;
+		};
+		C021C64820AB881D0077BBA0 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_EMBED_SWIFT_STANDARD_LIBRARIES = YES;
+				BUNDLE_LOADER = "$(TEST_HOST)";
+				CODE_SIGN_STYLE = Automatic;
+				COMBINE_HIDPI_IMAGES = YES;
+				DEVELOPMENT_TEAM = LSM6JTWMAC;
+				INFOPLIST_FILE = monaTests/Info.plist;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/../Frameworks",
+					"@loader_path/../Frameworks",
+				);
+				PRODUCT_BUNDLE_IDENTIFIER = gitdb.monaTests;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SWIFT_VERSION = 4.0;
+				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/mona.app/Contents/MacOS/mona";
+			};
+			name = Debug;
+		};
+		C021C64920AB881D0077BBA0 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_EMBED_SWIFT_STANDARD_LIBRARIES = YES;
+				BUNDLE_LOADER = "$(TEST_HOST)";
+				CODE_SIGN_STYLE = Automatic;
+				COMBINE_HIDPI_IMAGES = YES;
+				DEVELOPMENT_TEAM = LSM6JTWMAC;
+				INFOPLIST_FILE = monaTests/Info.plist;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/../Frameworks",
+					"@loader_path/../Frameworks",
+				);
+				PRODUCT_BUNDLE_IDENTIFIER = gitdb.monaTests;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SWIFT_VERSION = 4.0;
+				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/mona.app/Contents/MacOS/mona";
+			};
+			name = Release;
+		};
+/* End XCBuildConfiguration section */
+
+/* Begin XCConfigurationList section */
+		C021C62620AB881B0077BBA0 /* Build configuration list for PBXProject "mona" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				C021C64220AB881D0077BBA0 /* Debug */,
+				C021C64320AB881D0077BBA0 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		C021C64420AB881D0077BBA0 /* Build configuration list for PBXNativeTarget "mona" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				C021C64520AB881D0077BBA0 /* Debug */,
+				C021C64620AB881D0077BBA0 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		C021C64720AB881D0077BBA0 /* Build configuration list for PBXNativeTarget "monaTests" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				C021C64820AB881D0077BBA0 /* Debug */,
+				C021C64920AB881D0077BBA0 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+/* End XCConfigurationList section */
+	};
+	rootObject = C021C62320AB881B0077BBA0 /* Project object */;
+}
