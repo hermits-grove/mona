@@ -1,0 +1,80 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<svg
+   xmlns:dc="http://purl.org/dc/elements/1.1/"
+   xmlns:cc="http://creativecommons.org/ns#"
+   xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#"
+   xmlns:svg="http://www.w3.org/2000/svg"
+   xmlns="http://www.w3.org/2000/svg"
+   id="svg8"
+   version="1.1"
+   viewBox="0 0 14.258965 14.258965"
+   height="14.258965mm"
+   width="14.258965mm">
+  <defs
+     id="defs2" />
+  <metadata
+     id="metadata5">
+    <rdf:RDF>
+      <cc:Work
+         rdf:about="">
+        <dc:format>image/svg+xml</dc:format>
+        <dc:type
+           rdf:resource="http://purl.org/dc/dcmitype/StillImage" />
+        <dc:title></dc:title>
+      </cc:Work>
+    </rdf:RDF>
+  </metadata>
+  <g
+     transform="translate(-22.080369,-208.9569)"
+     style="display:inline"
+     id="layer1">
+    <g
+       id="g4560"
+       transform="translate(6.3894373,99.096618)">
+      <circle
+         style="opacity:1;fill:#ffcc00;fill-opacity:1;stroke:none;stroke-width:0.42533046;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1"
+         id="circle4546"
+         cx="22.820414"
+         cy="116.98977"
+         r="7.1294823" />
+      <circle
+         r="6.7103515"
+         cy="116.98977"
+         cx="22.820414"
+         id="circle4548"
+         style="opacity:1;fill:#37c8ab;fill-opacity:1;stroke:none;stroke-width:0.40032592;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1" />
+      <circle
+         style="opacity:1;fill:#2ca089;fill-opacity:1;stroke:none;stroke-width:0.36084321;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1"
+         id="circle4550"
+         cx="22.820414"
+         cy="116.98977"
+         r="6.0485334" />
+      <circle
+         cy="116.98977"
+         cx="22.820414"
+         id="circle4552"
+         style="opacity:1;fill:#2e6a46;fill-opacity:1;stroke:none;stroke-width:0.29189283;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1"
+         r="4.8927712" />
+      <circle
+         style="opacity:1;fill:#11380d;fill-opacity:1;stroke:none;stroke-width:0.18651496;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1"
+         id="circle4554"
+         cx="22.820414"
+         cy="116.98977"
+         r="3.1264043" />
+      <text
+         xml:space="preserve"
+         style="font-style:normal;font-weight:normal;font-size:10.8670578px;line-height:1.25;font-family:sans-serif;letter-spacing:0px;word-spacing:0px;fill:#ffffff;fill-opacity:1;stroke:none;stroke-width:0.27167645"
+         x="18.696363"
+         y="119.49464"
+         id="text4558"><tspan
+           id="tspan4556"
+           x="18.696363"
+           y="119.49464"
+           style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-family:Pacifico;-inkscape-font-specification:Pacifico;fill:#ffffff;stroke-width:0.27167645">m</tspan></text>
+    </g>
+  </g>
+  <g
+     transform="translate(-22.080369,-208.9569)"
+     style="display:inline"
+     id="layer2" />
+</svg>

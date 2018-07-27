@@ -40,6 +40,7 @@ nativePort.onMessage.addListener((response) => {
     if (response.Login.success) {
       model = {
 	state: "logged_in",
+	query: "",
 	accounts: []
       };
     } else {
@@ -52,13 +53,14 @@ nativePort.onMessage.addListener((response) => {
     if (model.state != "logged_in") {
       console.log("received account query results but I am not logged in");
     } else {
+      model.query = response.AccountQuery.query;
       model.accounts = response.AccountQuery.results;
     }
-    if (popupPort) popupPort.postMessage({action: "received_response"});
+    if (popupPort) popupPort.postMessage({action: "received_query_response"});
   } else if (response.GetAccount) {
     if (popupPort) {
       popupPort.postMessage({
-	action: "get_account",
+	action: "recieved_get_account",
 	account_name: response.GetAccount.account,
 	account_creds: response.GetAccount.creds
       });

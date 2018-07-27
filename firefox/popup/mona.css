@@ -177,7 +177,7 @@ body {
 	filter: blur(0px);
     }
     to {
-	filter: blur(4px);
+	filter: blur(100px);
     }
 }
 
