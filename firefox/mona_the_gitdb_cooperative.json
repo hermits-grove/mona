@@ -1,0 +1,7 @@
+{
+  "name": "mona_the_gitdb_cooperative",
+  "description": "a less nosy password manager",
+  "path": "/Users/davidrusu/.cargo/bin/mona-pipe-api",
+  "type": "stdio",
+  "allowed_extensions": [ "mona@the-gitdb-cooperative.org" ]
+}

@@ -7,9 +7,13 @@ authors = ["David Rusu <davidrusu.me@gmail.com>"]
 serde = "1.0.27"
 serde_derive = "1.0.27"
 rmp-serde = "0.13"
+serde_json = "1.0.2"
 clap = "2.31.2"
 toml = "0.4.5"
 csv = "1.0.0"
+base64 = "0.6.0"
+byteorder = "1.2.3"
+url = "1.7.0"
 
 [dependencies.gitdb]
 path = "../../gitdb"
@@ -17,3 +21,7 @@ path = "../../gitdb"
 [[bin]]
 name = "mona"
 path = "main.rs"
+
+[[bin]]
+name = "mona-pipe-api"
+path = "pipe.rs"

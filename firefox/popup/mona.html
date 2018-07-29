@@ -1,0 +1,35 @@
+<html>
+  <head>
+    <link href="https://fonts.googleapis.com/css?family=Open+Sans|Pacifico" rel="stylesheet">
+    <link rel="stylesheet" href="mona.css"/>
+  </head>
+  <body>
+    <div class="image"></div>
+    <div class="logged_out_prompt">
+      <div class="greeting">
+	<div class="logo">mona</div>
+	<div class="tagline">a less nosy password manager</div>
+      </div>
+      <div class="passprompt">
+	<!-- ws is meaningful, these two inputs need to be on same line -->
+	<form id="loginform">
+	  <input class="passinput" type="password" placeholder="master passphrase"/><input class="passbtn" type="image" src="../icons/mona-48.png"/>
+	</form>
+      </div>
+    </div>
+    <div class="logged_in_main hidden">
+      <div class="passprompt">
+	<!-- ws is meaningful, these two inputs need to be on same line -->
+	<form id="queryform">
+	  <input id="queryinput" class="passinput" placeholder="query"/><input class="passbtn" type="image" src="../icons/mona-48.png"/>
+	</form>
+
+	<div class="groups">
+	  <div id="account_list">
+	  </div>
+	</div>
+      </div>
+    </div>
+    <script src="mona.js"></script>
+  </body>
+</html>
